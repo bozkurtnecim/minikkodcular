@@ -21,3 +21,13 @@ Site sabit dosyalardan oluşur (HTML + JavaScript), GitHub Pages gibi her statik
 Anaokulu sayfasındaki "Öğretmen modu" düğmesi öğretmenin e-postasına bir giriş kodu gönderir (Supabase Auth).
 Kod doğrulanınca o cihazda bütün bölümler açılır ve oyunlarda "Cevabı göster" düğmesi çıkar.
 Supabase istemci kütüphanesi `js/vendor/` içindedir (MIT).
+
+## Hesaplar ve ilerleme
+
+Sağ üstteki "Giriş yap" düğmesiyle kullanıcı adı ve şifreyle kayıt olunur ya da giriş yapılır.
+E-posta isteğe bağlıdır; yazılırsa "Şifremi unuttum" ile o adrese kod gönderilir.
+"Beni hatırla" seçilirse oturum tarayıcıda kalır. Girişliyken oyun ilerlemesi Supabase'deki
+`ilerleme` tablosuna yazılır ve başka cihazda girişte birleştirilir; çıkışta cihazdaki ilerleme silinir.
+
+- `supabase/functions/hesap/`: kayıt, giriş ve şifre sıfırlama (Edge Function, verify_jwt kapalı)
+- `supabase/migrations/`: `profiller` ve `ilerleme` tabloları, satır düzeyinde güvenlik kuralları

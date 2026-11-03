@@ -24,6 +24,8 @@
 
   const oyunlar = {};
   let aktifOyun = null, aktifNo = null;
+  const SUPABASE_URL_SABIT = "https://psmhycpnoyupyhnxhcpq.supabase.co";
+  const SUPABASE_ANAHTAR_SABIT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzbWh5Y3Bub3l1cHlobnhoY3BxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM3MjM3ODEsImV4cCI6MjEwOTI5OTc4MX0.S9MzEw0RZzDGwmeo7JPipWHvFji0hSsvO5vEIJ4D6BE";
 
   // ---------- Kayıt (tarayıcıda, isteğe bağlı) ----------
   const kayit = {
@@ -32,6 +34,7 @@
     },
     yaz(anahtar, deger) {
       try { localStorage.setItem("mk:" + anahtar, JSON.stringify(deger)); } catch (e) {}
+      if (ilerlemeAnahtari("mk:" + anahtar)) hesapGonderPlanla();
     },
   };
 
@@ -94,6 +97,7 @@
     sesAcik: s('<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"/>'),
     sesKapali: s('<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9l5 6M22 9l-5 6"/>'),
     el: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11V4.5a1.5 1.5 0 0 1 3 0V10h.5V8.5a1.5 1.5 0 0 1 3 0V10h.5V9.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-1.2a5 5 0 0 1-3.9-1.9L4.3 15a1.5 1.5 0 0 1 2.3-1.9L9 15.5z" fill="#ffd6b0" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
+    kisi: s('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/>'),
     cevap: s('<path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/>'),
     kilit: s('<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>'),
     oynat: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5l11 7-11 7z" fill="currentColor"/></svg>',
@@ -183,6 +187,7 @@
       <header class="ust">
         <a class="logo" href="#">${logoSvg}<span>Minik Kodcular</span></a>
         <span class="ust-bosluk"></span>
+        ${hesapDugmesi()}
         <button class="dugme" data-tam-ekran type="button"></button>
       </header>
       <main class="ana">
@@ -215,6 +220,7 @@
         <a class="dugme kare" href="#" aria-label="Kademeler">${IKON.geri}</a>
         <a class="logo" href="#">${logoSvg}<span>Minik Kodcular</span></a>
         <span class="ust-bosluk"></span>
+        ${hesapDugmesi()}
         <button class="dugme" data-tam-ekran type="button"></button>
       </header>
       <main class="ana"><section class="yakinda" style="--renk:${k.renk}"><div class="resim">${k.resim}</div><h1>${k.ad}</h1><p>${k.alt} için oyunlar hazırlanıyor. Çok yakında burada!</p><a class="dugme" href="#">${IKON.geri}<span>Kademelere dön</span></a></section></main>`;
@@ -245,6 +251,7 @@
         <a class="dugme kare" href="${geri}" aria-label="${geriAd}">${IKON.geri}</a>
         <a class="logo" href="#">${logoSvg}<span>Minik Kodcular</span></a>
         <span class="ust-bosluk"></span>
+        ${hesapDugmesi()}
         <button class="dugme" data-tam-ekran type="button"></button>
       </header>`;
 
@@ -275,19 +282,215 @@
     kok().querySelector("[data-ogretmen]").onclick = () => (ogretmenMi() ? ogretmenKapat() : ogretmenAc());
   }
 
+  // ---------- Hesap: kullanıcı adı + şifre, ilerleme Supabase'de ----------
+  // Kayıt ve giriş sunucudaki "hesap" fonksiyonuyla yapılır (kullanıcı adını e-postaya o çevirir).
+  // "Beni hatırla" seçilirse oturum tarayıcıda kalır, seçilmezse sekme kapanınca biter.
+  // Oyunların ilerlemesi (mk:<oyun>) her değişince birkaç saniye içinde hesaba yazılır; girişte cihazdakiyle birleştirilir.
+  const HESAP_FONK = SUPABASE_URL_SABIT + "/functions/v1/hesap";
+  const hatirlaniyor = () => { try { return localStorage.getItem("mk:hatirla") !== "0"; } catch (e) { return true; } };
+  const hesapDepo = () => { try { return hatirlaniyor() ? localStorage : sessionStorage; } catch (e) { return null; } };
+  function hesapAdi() { try { const d = hesapDepo(); return d && d.getItem("mk:hesap"); } catch (e) { return null; } }
+  function ilerlemeAnahtari(k) {
+    return k.startsWith("mk:") && !k.startsWith("mk:ipucu:") && !["mk:ses", "mk:ogretmen", "mk:hatirla", "mk:hesap"].includes(k);
+  }
+  function yerelIlerleme() {
+    const v = {};
+    try { Object.keys(localStorage).filter(ilerlemeAnahtari).forEach((k) => { try { v[k.slice(3)] = JSON.parse(localStorage.getItem(k)); } catch (e) {} }); } catch (e) {}
+    return v;
+  }
+  // İki ilerlemeyi birleştir: bitirilen bölümler birleşir, en ileri bölüm kalır
+  function birlestir(a, b) {
+    const out = { ...b };
+    for (const [k, x] of Object.entries(a)) {
+      const y = b[k];
+      if (x && y && Array.isArray(x.bitti) && Array.isArray(y.bitti)) out[k] = { ...y, ...x, bitti: [...new Set([...y.bitti, ...x.bitti])].sort((p, q) => p - q), son: Math.max(x.son || 0, y.son || 0) };
+      else if (y === undefined) out[k] = x;
+    }
+    return out;
+  }
+  let hesapIstemci = null;
+  async function hesapSb() {
+    if (hesapIstemci) return hesapIstemci;
+    const lib = await kutuphaneYukle();
+    hesapIstemci = lib.createClient(SUPABASE_URL_SABIT, SUPABASE_ANAHTAR_SABIT, { auth: { storage: hesapDepo(), storageKey: "mk-oturum", persistSession: true, autoRefreshToken: true } });
+    return hesapIstemci;
+  }
+  async function hesapCagir(govde) {
+    const y = await fetch(HESAP_FONK, { method: "POST", headers: { "Content-Type": "application/json", apikey: SUPABASE_ANAHTAR_SABIT }, body: JSON.stringify(govde) });
+    let v = {}; try { v = await y.json(); } catch (e) {}
+    return v;
+  }
+  let gonderZaman = null;
+  function hesapGonderPlanla() { if (!hesapAdi()) return; clearTimeout(gonderZaman); gonderZaman = setTimeout(hesapGonder, 1500); }
+  async function hesapGonder() {
+    try {
+      const sb = await hesapSb(), { data } = await sb.auth.getSession();
+      if (!data.session) return;
+      await sb.from("ilerleme").upsert({ kullanici_id: data.session.user.id, veri: yerelIlerleme(), guncelleme: new Date().toISOString() });
+    } catch (e) {}
+  }
+  // Hesaptaki ilerlemeyi indir, cihazdakiyle birleştir, ikisini de güncelle
+  async function hesapEsitle() {
+    const sb = await hesapSb(), { data } = await sb.auth.getSession();
+    if (!data.session) return false;
+    const { data: satir } = await sb.from("ilerleme").select("veri").eq("kullanici_id", data.session.user.id).maybeSingle();
+    const veri = birlestir(yerelIlerleme(), (satir && satir.veri) || {});
+    Object.entries(veri).forEach(([k, v]) => { try { localStorage.setItem("mk:" + k, JSON.stringify(v)); } catch (e) {} });
+    await sb.from("ilerleme").upsert({ kullanici_id: data.session.user.id, veri, guncelleme: new Date().toISOString() });
+    return true;
+  }
+  async function oturumAc(cvp, hatirla) {
+    try { localStorage.setItem("mk:hatirla", hatirla ? "1" : "0"); } catch (e) {}
+    hesapIstemci = null;
+    const sb = await hesapSb();
+    await sb.auth.setSession(cvp.oturum);
+    try { hesapDepo().setItem("mk:hesap", cvp.kullanici); } catch (e) {}
+    await hesapEsitle();
+  }
+  async function cikisYap() {
+    try { const sb = await hesapSb(); await hesapGonder(); await sb.auth.signOut(); } catch (e) {}
+    try { localStorage.removeItem("mk:hesap"); sessionStorage.removeItem("mk:hesap"); } catch (e) {}
+    // Paylaşılan cihazda sonraki çocuk öncekinin ilerlemesini görmesin
+    try { Object.keys(localStorage).filter(ilerlemeAnahtari).forEach((k) => localStorage.removeItem(k)); } catch (e) {}
+    hesapIstemci = null;
+    yonlendir();
+  }
+  function hesapDugmesi() {
+    const ad = hesapAdi();
+    return `<button class="dugme hesap-dugme${ad ? " girisli" : ""}" data-hesap type="button" aria-label="${ad ? "Hesabım" : "Giriş yap"}">${IKON.kisi}<span class="etiket">${ad ? ad.replace(/[<>&"]/g, "") : "Giriş yap"}</span></button>`;
+  }
+  const HESAP_HATA = {
+    kullanici_gecersiz: "Kullanıcı adı 3-20 karakter olmalı; harf, rakam, nokta, alt çizgi ya da tire kullanın.",
+    sifre_kisa: "Şifre en az 6 karakter olmalı.",
+    eposta_gecersiz: "E-posta adresi geçerli değil.",
+    kullanici_alinmis: "Bu kullanıcı adı alınmış, başka bir ad deneyin.",
+    eposta_alinmis: "Bu e-posta başka bir hesapta kayıtlı.",
+    bilgi_yanlis: "Kullanıcı adı ya da şifre yanlış.",
+    cok_deneme: "Çok fazla deneme yapıldı. Biraz bekleyip yeniden deneyin.",
+    kod_yanlis: "Kod doğru değil ya da süresi dolmuş.",
+    gonderilemedi: "E-posta gönderilemedi. Biraz sonra yeniden deneyin.",
+  };
+  function hesapPenceresi(kip) {
+    kip = kip || (hesapAdi() ? "hesap" : "giris");
+    document.querySelectorAll(".hs-ortu").forEach((e) => e.remove());
+    const ortu = document.createElement("div");
+    ortu.className = "sf-ortu hs-ortu";
+    const hatirlaKutu = `<label class="hs-hatirla"><input type="checkbox" name="hatirla" ${hatirlaniyor() ? "checked" : ""}> Beni hatırla</label>`;
+    const ICERIK = {
+      giris: `<h2>Giriş yap</h2>
+        <input class="og-girdi" name="kullanici" autocomplete="username" placeholder="Kullanıcı adı" required>
+        <input class="og-girdi" name="sifre" type="password" autocomplete="current-password" placeholder="Şifre" required>
+        ${hatirlaKutu}
+        <p class="og-hata" role="alert" hidden></p>
+        <button class="dugme og-ana" type="submit">Giriş yap</button>
+        <div class="hs-baglar"><button type="button" class="hs-bag" data-kip="unuttum">Şifremi unuttum</button><button type="button" class="hs-bag" data-kip="kayit">Hesabın yok mu? Kayıt ol</button></div>`,
+      kayit: `<h2>Kayıt ol</h2>
+        <input class="og-girdi" name="kullanici" autocomplete="username" placeholder="Kullanıcı adı" required>
+        <input class="og-girdi" name="sifre" type="password" autocomplete="new-password" placeholder="Şifre (en az 6 karakter)" required>
+        <input class="og-girdi" name="sifre2" type="password" autocomplete="new-password" placeholder="Şifre tekrar" required>
+        <input class="og-girdi" name="eposta" type="email" autocomplete="email" inputmode="email" placeholder="E-posta (isteğe bağlı)">
+        <p class="hs-not">E-posta yazarsanız şifrenizi unuttuğunuzda sıfırlayabilirsiniz.</p>
+        ${hatirlaKutu}
+        <p class="og-hata" role="alert" hidden></p>
+        <button class="dugme og-ana" type="submit">Kayıt ol</button>
+        <div class="hs-baglar"><button type="button" class="hs-bag" data-kip="giris">Zaten hesabın var mı? Giriş yap</button></div>`,
+      unuttum: `<h2>Şifremi unuttum</h2>
+        <p data-aciklama>Kullanıcı adınızı yazın. Hesabınıza kayıtlı e-postaya bir kod gönderelim.</p>
+        <input class="og-girdi" name="kullanici" autocomplete="username" placeholder="Kullanıcı adı" required>
+        <input class="og-girdi og-kod" name="kod" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="Kod" hidden>
+        <input class="og-girdi" name="sifre" type="password" autocomplete="new-password" placeholder="Yeni şifre" hidden>
+        <p class="og-hata" role="alert" hidden></p>
+        <button class="dugme og-ana" type="submit">Kod gönder</button>
+        <div class="hs-baglar"><button type="button" class="hs-bag" data-kip="giris">Girişe dön</button></div>`,
+      hesap: `<h2>Merhaba, ${(hesapAdi() || "").replace(/[<>&"]/g, "")}!</h2>
+        <p>İlerlemen hesabına kaydediliyor. Başka bir cihazda aynı kullanıcı adıyla giriş yaparsan kaldığın yerden devam edersin.</p>
+        <button class="dugme og-ana" type="button" data-cikis>Çıkış yap</button>`,
+    };
+    ortu.innerHTML = `<form class="sf-kutu og-kutu hs-kutu" role="dialog" aria-label="Hesap" novalidate><button type="button" class="hs-kapat" aria-label="Kapat" data-kapat>✕</button>${ICERIK[kip]}</form>`;
+    document.body.appendChild(ortu);
+    const form = ortu.querySelector("form"), hata = form.querySelector(".og-hata"), ana = form.querySelector(".og-ana");
+    const hataYaz = (m) => { if (hata) { hata.textContent = m; hata.hidden = !m; } };
+    const kapat = () => ortu.remove();
+    ortu.addEventListener("click", (e) => {
+      if (e.target === ortu || e.target.closest("[data-kapat]")) return kapat();
+      const b = e.target.closest("[data-kip]"); if (b) return hesapPenceresi(b.dataset.kip);
+      if (e.target.closest("[data-cikis]")) { kapat(); cikisYap(); }
+    });
+    const ilk = form.querySelector("input"); if (ilk) ilk.focus();
+    let asama = "ad";
+    form.onsubmit = async (e) => {
+      e.preventDefault(); hataYaz("");
+      const ad = (form.kullanici && form.kullanici.value.trim()) || "", sifre = form.sifre ? form.sifre.value : "";
+      const hatirla = form.hatirla ? form.hatirla.checked : hatirlaniyor();
+      if (kip === "kayit") {
+        if (!/^[\p{L}\p{N}._-]{3,20}$/u.test(ad)) return hataYaz(HESAP_HATA.kullanici_gecersiz);
+        if (sifre.length < 6) return hataYaz(HESAP_HATA.sifre_kisa);
+        if (sifre !== form.sifre2.value) return hataYaz("Şifreler aynı değil.");
+        const ep = form.eposta.value.trim();
+        if (ep && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(ep)) return hataYaz(HESAP_HATA.eposta_gecersiz);
+      } else if (!ad) return hataYaz("Kullanıcı adını yazın.");
+      ana.disabled = true;
+      try {
+        if (kip === "giris" || kip === "kayit") {
+          const cvp = await hesapCagir(kip === "giris" ? { islem: "giris", kullanici: ad, sifre } : { islem: "kayit", kullanici: ad, sifre, eposta: form.eposta.value.trim() });
+          if (!cvp.oturum) return hataYaz(HESAP_HATA[cvp.hata] || "Bir sorun oldu, yeniden deneyin.");
+          await oturumAc(cvp, hatirla);
+          ses.yerlesti(); kapat(); yonlendir();
+        } else if (asama === "ad") {
+          const cvp = await hesapCagir({ islem: "sifre_iste", kullanici: ad });
+          if (cvp.hata) return hataYaz(HESAP_HATA[cvp.hata] || "Bir sorun oldu, yeniden deneyin.");
+          if (!cvp.gonderildi) return hataYaz("Bu kullanıcı adı bulunamadı ya da hesaba e-posta eklenmemiş. Şifre e-postasız sıfırlanamaz.");
+          asama = "kod"; form.kullanici.readOnly = true; form.kod.hidden = false; form.sifre.hidden = false; form.kod.focus();
+          form.querySelector("[data-aciklama]").textContent = `${cvp.eposta} adresine gelen kodu ve yeni şifrenizi yazın.`;
+          ana.textContent = "Şifreyi değiştir";
+        } else {
+          if (sifre.length < 6) return hataYaz(HESAP_HATA.sifre_kisa);
+          const cvp = await hesapCagir({ islem: "sifre_yenile", kullanici: ad, kod: form.kod.value, sifre });
+          if (!cvp.oturum) return hataYaz(HESAP_HATA[cvp.hata] || "Bir sorun oldu, yeniden deneyin.");
+          await oturumAc(cvp, hatirlaniyor());
+          ses.yerlesti(); kapat(); yonlendir();
+        }
+      } catch (err) { hataYaz("Bağlantı kurulamadı. İnternet bağlantınızı kontrol edin."); }
+      finally { ana.disabled = false; }
+    };
+  }
+  document.addEventListener("click", (e) => { if (e.target.closest("[data-hesap]")) hesapPenceresi(); });
+  // Açılışta hatırlanan oturum varsa ilerlemeyi hesapla eşitle
+  function hesapBaslat() {
+    if (!hesapAdi()) return;
+    hesapSb().then(async (sb) => {
+      const { data } = await sb.auth.getSession();
+      if (!data.session) { try { hesapDepo().removeItem("mk:hesap"); } catch (e) {} return yonlendir(); }
+      if (await hesapEsitle() && !aktifOyun) yonlendir();
+    }).catch(() => {});
+  }
+
   // ---------- Öğretmen modu ----------
   // Öğretmen e-postasını yazar, Supabase bir giriş kodu gönderir; kod doğrulanınca bu cihazda öğretmen modu açılır:
   // bütün bölümler açılır ve oyunlarda "Cevabı göster" düğmesi çıkar.
-  const SUPABASE_URL = "https://psmhycpnoyupyhnxhcpq.supabase.co";
-  const SUPABASE_ANAHTAR = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzbWh5Y3Bub3l1cHlobnhoY3BxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM3MjM3ODEsImV4cCI6MjEwOTI5OTc4MX0.S9MzEw0RZzDGwmeo7JPipWHvFji0hSsvO5vEIJ4D6BE";
+  const SUPABASE_URL = SUPABASE_URL_SABIT, SUPABASE_ANAHTAR = SUPABASE_ANAHTAR_SABIT;
   function ogretmenMi() { return !!kayit.oku("ogretmen", null); }
   let supa = null;
+  let kutuphane = null;
+  function kutuphaneYukle() {
+    if (window.supabase) return Promise.resolve(window.supabase);
+    if (kutuphane) return kutuphane;
+    kutuphane = new Promise((coz, red) => {
+      const sc = document.createElement("script");
+      sc.src = "js/vendor/supabase-2.45.4.js"; // @supabase/supabase-js 2.45.4 (MIT), siteyle birlikte gelir
+      sc.onload = () => coz(window.supabase);
+      sc.onerror = () => { kutuphane = null; red(new Error("yuklenemedi")); };
+      document.head.appendChild(sc);
+    });
+    return kutuphane;
+  }
   function supabaseYukle() {
     if (supa) return Promise.resolve(supa);
+    if (window.supabase) { supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANAHTAR, { auth: { persistSession: false, autoRefreshToken: false, storageKey: "mk-ogretmen" } }); return Promise.resolve(supa); }
     return new Promise((coz, red) => {
       const sc = document.createElement("script");
       sc.src = "js/vendor/supabase-2.45.4.js"; // @supabase/supabase-js 2.45.4 (MIT), siteyle birlikte gelir
-      sc.onload = () => { try { supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANAHTAR); coz(supa); } catch (e) { red(e); } };
+      sc.onload = () => { try { supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANAHTAR, { auth: { persistSession: false, autoRefreshToken: false, storageKey: "mk-ogretmen" } }); coz(supa); } catch (e) { red(e); } };
       sc.onerror = () => red(new Error("yuklenemedi"));
       document.head.appendChild(sc);
     });
@@ -369,7 +572,7 @@
       ses.tik(); goster();
       if (yazilan.length === 4) {
         if (yazilan === kod) {
-          try { Object.keys(localStorage).filter((k) => k.startsWith("mk:") && k !== "mk:ses" && k !== "mk:ogretmen").forEach((k) => localStorage.removeItem(k)); } catch (e) {}
+          try { Object.keys(localStorage).filter((k) => k.startsWith("mk:") && !["mk:ses", "mk:ogretmen", "mk:hatirla", "mk:hesap"].includes(k)).forEach((k) => localStorage.removeItem(k)); } catch (e) {}
           ortu.querySelector(".sf-kutu").innerHTML = `<h2>Sıfırlandı</h2><p>Bütün oyunlar ilk bölümden başlayacak.</p><button class="dugme" type="button" data-t="tamam">Tamam</button>`;
           ses.yerlesti();
         } else {
@@ -603,6 +806,6 @@
     oyunEkle(no, oyun) { oyunlar[no] = oyun; },
     // Bütün oyunlarda 30 bölüm aynı düzende: 3 çok kolay, 3 kolay, 6 orta, 6 zor, 12 çok zor
     seviye(i) { return i < 3 ? "Çok kolay" : i < 6 ? "Kolay" : i < 12 ? "Orta" : i < 18 ? "Zor" : "Çok zor"; },
-    baslat() { window.addEventListener("hashchange", yonlendir); yonlendir(); },
+    baslat() { window.addEventListener("hashchange", yonlendir); yonlendir(); hesapBaslat(); },
   };
 })();
