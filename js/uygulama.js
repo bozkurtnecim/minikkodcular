@@ -274,12 +274,13 @@
             <div class="durum">${IKON.oynat.replace("<svg", '<svg width="16" height="16"')} ${hazir} oyun</div></a>`;
         }).join("")}</section>
         <p class="not">Öğretmen notu: Her oyun ilk açıldığında bir el nasıl oynanacağını gösterir; üstteki el düğmesiyle istediğiniz an yeniden izletebilirsiniz. "Çok zor" bölümler meraklı ve hızlı ilerleyen çocuklar içindir, herkesin bitirmesi gerekmez. Oyunları akıllı tahtada tam ekran açabilirsiniz. Çocuğun ilerlemesi bu cihazdaki tarayıcıda saklanır.</p>
-        <div class="sifirla-yer"><button class="dugme${ogretmenMi() ? " ogretmen-acik" : ""}" type="button" data-ogretmen>${IKON.cevap}<span>${ogretmenMi() ? "Öğretmen modu açık · Kapat" : "Öğretmen modu"}</span></button><button class="dugme" type="button" data-sifirla>${IKON.tekrar}<span>Tüm oyunları sıfırla</span></button></div>
+        <div class="sifirla-yer"><button class="dugme${ogretmenMi() ? " ogretmen-acik" : ""}" type="button" data-ogretmen>${IKON.cevap}<span>${ogretmenMi() ? "Öğretmen modu açık · Kapat" : "Öğretmen modu"}</span></button>${ogretmenMi() && hesapAdi() ? `<button class="dugme ogretmen-acik" type="button" data-duzenle-ac>${IKON.cevap}<span>${hesapAdi().replace(/[<>&"]/g, "")} · İlerlemeyi düzenle</span></button>` : ""}<button class="dugme" type="button" data-sifirla>${IKON.tekrar}<span>Tüm oyunları sıfırla</span></button></div>
       </main>`;
     tamEkranDugmeleriniGuncelle();
     kok().querySelector("[data-tam-ekran]").onclick = tamEkranDegistir;
     kok().querySelector("[data-sifirla]").onclick = sifirlaSor;
     kok().querySelector("[data-ogretmen]").onclick = () => (ogretmenMi() ? ogretmenKapat() : ogretmenAc());
+    const dz = kok().querySelector("[data-duzenle-ac]"); if (dz) dz.onclick = ilerlemeDuzenle;
   }
 
   // ---------- Hesap: kullanıcı adı + şifre, ilerleme Supabase'de ----------
@@ -404,6 +405,7 @@
         <div class="hs-baglar"><button type="button" class="hs-bag" data-kip="giris">Girişe dön</button></div>`,
       hesap: `<h2>Merhaba, ${(hesapAdi() || "").replace(/[<>&"]/g, "")}!</h2>
         <p>İlerlemen hesabına kaydediliyor. Başka bir cihazda aynı kullanıcı adıyla giriş yaparsan kaldığın yerden devam edersin.</p>
+        ${ogretmenMi() ? `<button class="dugme" type="button" data-duzenle>${IKON.cevap}<span>İlerlemeyi düzenle</span></button>` : ""}
         <button class="dugme og-ana" type="button" data-cikis>Çıkış yap</button>`,
     };
     ortu.innerHTML = `<form class="sf-kutu og-kutu hs-kutu" role="dialog" aria-label="Hesap" novalidate><button type="button" class="hs-kapat" aria-label="Kapat" data-kapat>✕</button>${ICERIK[kip]}</form>`;
@@ -415,6 +417,7 @@
       if (e.target === ortu || e.target.closest("[data-kapat]")) return kapat();
       const b = e.target.closest("[data-kip]"); if (b) return hesapPenceresi(b.dataset.kip);
       if (e.target.closest("[data-cikis]")) { kapat(); cikisYap(); }
+      if (e.target.closest("[data-duzenle]")) { kapat(); ilerlemeDuzenle(); }
     });
     const ilk = form.querySelector("input"); if (ilk) ilk.focus();
     let asama = "ad";
@@ -463,6 +466,54 @@
       if (!data.session) { try { hesapDepo().removeItem("mk:hesap"); } catch (e) {} return yonlendir(); }
       if (await hesapEsitle() && !aktifOyun) yonlendir();
     }).catch(() => {});
+  }
+
+  // ---------- Öğretmen: girişli hesabın ilerlemesini düzenleme ----------
+  // Yalnız öğretmen modu açıkken ve bir hesapla giriş yapılmışken. Noktaya dokununca bölüm bitti/bitmedi olur;
+  // değişiklik cihaza ve (kayit.yaz üzerinden) hesaba yazılır.
+  const KAYIT_ADI = { 1: "yapboz", 2: "sirala", 3: "boncuk", 4: "buyukluk", 5: "golge", 6: "siniflandir", 7: "sekiller", 8: "rutin", 9: "renk", 10: "dans",
+    11: "tren", 12: "boru", 13: "asci", 14: "koro", 15: "tangram", 16: "ari", 17: "havuc", 18: "trafik", 19: "roket", 20: "firca", 21: "halka", 22: "ahtapot",
+    23: "kule", 24: "sifre", 25: "hangi", 26: "makine", 27: "kaplumbaga", 30: "makas", 31: "kamyonet", 32: "hata", 33: "yapayzeka", 34: "supurge", 35: "tavsan",
+    37: "dokun", 38: "kosu3", 39: "ugur", 40: "yakindan", 41: "eksik", 42: "dondur", 43: "yarim" };
+  function ilerlemeDuzenle() {
+    if (!ogretmenMi() || !hesapAdi()) return;
+    const ortu = document.createElement("div");
+    ortu.className = "sf-ortu dz-ortu";
+    const oyunSatiri = (no) => {
+      const o = oyunlar[no], k = KAYIT_ADI[no]; if (!o || !k) return "";
+      const n = (o.ilerleme && o.ilerleme().toplam) || 30, v = kayit.oku(k, { bitti: [], son: 0 });
+      return `<div class="dz-oyun" data-no="${no}"><div class="dz-ust"><b>${HAFTALAR[no - 1].ad}</b><span class="dz-say">${v.bitti.length}/${n}</span>
+        <button type="button" class="hs-bag" data-hepsi>Hepsini bitir</button><button type="button" class="hs-bag" data-temizle>Sıfırla</button></div>
+        <div class="dz-noktalar">${Array.from({ length: n }, (_, i) => `<button type="button" class="dz-nokta${v.bitti.includes(i) ? " bitti" : ""}" data-i="${i}" aria-label="${i + 1}. bölüm">${i + 1}</button>`).join("")}</div></div>`;
+    };
+    ortu.innerHTML = `<div class="sf-kutu dz-kutu" role="dialog" aria-label="İlerlemeyi düzenle"><button type="button" class="hs-kapat" aria-label="Kapat" data-kapat>✕</button>
+      <h2>${hesapAdi().replace(/[<>&"]/g, "")} · İlerleme</h2>
+      <p>Bölüm numarasına dokununca bitti ya da bitmedi olur. Değişiklikler hesaba kaydedilir.</p>
+      <div class="dz-liste">${KATEGORILER.map((kat) => { const satir = kat.oyunlar.filter((n) => n && oyunlar[n]).map(oyunSatiri).join(""); return satir ? `<h3 style="color:${kat.renk}">${kat.ad}</h3>${satir}` : ""; }).join("")}</div>
+      <div class="kt-satir"><button type="button" class="dugme" data-hepsini-sifirla>${IKON.tekrar}<span>Tüm ilerlemeyi sıfırla</span></button><button type="button" class="dugme og-ana" data-kapat>Tamam</button></div></div>`;
+    document.body.appendChild(ortu);
+    const yaz = (no, bitti) => {
+      const n = (oyunlar[no].ilerleme && oyunlar[no].ilerleme().toplam) || 30;
+      bitti = [...new Set(bitti)].sort((a, b) => a - b);
+      let son = 0; while (son < n - 1 && bitti.includes(son)) son++;
+      kayit.yaz(KAYIT_ADI[no], { bitti, son });
+      const el = ortu.querySelector(`.dz-oyun[data-no="${no}"]`);
+      el.querySelectorAll(".dz-nokta").forEach((b) => b.classList.toggle("bitti", bitti.includes(+b.dataset.i)));
+      el.querySelector(".dz-say").textContent = `${bitti.length}/${n}`;
+    };
+    ortu.addEventListener("click", (e) => {
+      if (e.target === ortu || e.target.closest("[data-kapat]")) { ortu.remove(); return yonlendir(); }
+      const oyun = e.target.closest(".dz-oyun"), no = oyun && +oyun.dataset.no;
+      const v = no ? kayit.oku(KAYIT_ADI[no], { bitti: [], son: 0 }) : null;
+      const nokta = e.target.closest(".dz-nokta");
+      if (nokta) { const i = +nokta.dataset.i; ses.tik(); return yaz(no, v.bitti.includes(i) ? v.bitti.filter((x) => x !== i) : [...v.bitti, i]); }
+      if (e.target.closest("[data-hepsi]")) { ses.tik(); return yaz(no, [...Array((oyunlar[no].ilerleme && oyunlar[no].ilerleme().toplam) || 30).keys()]); }
+      if (e.target.closest("[data-temizle]")) { ses.tik(); return yaz(no, []); }
+      if (e.target.closest("[data-hepsini-sifirla]")) {
+        if (!confirm(`${hesapAdi()} hesabındaki bütün oyunların ilerlemesi silinsin mi?`)) return;
+        Object.keys(KAYIT_ADI).forEach((no) => { if (oyunlar[no]) yaz(+no, []); });
+      }
+    });
   }
 
   // ---------- Öğretmen modu ----------
