@@ -259,9 +259,9 @@
   window.Uygulama.oyunEkle(27, {
     baslat,
     bitir() { if (d && d.gozlemci) d.gozlemci.disconnect(); if (d) d.uid++; d = null; },
-    ipucu() {
+    ipucu(tam) {
       if (!d) return [];
-      const sol = [...BOLUMLER[d.idx].cozum].slice(0, 2);
+      const sol = [...BOLUMLER[d.idx].cozum].slice(0, tam ? undefined : 2);
       return [...sol.map((y, j) => ({ el: d.sahne.querySelector(`.kb-ok[data-y="${y}"]`), hedef: d.sahne.querySelector(`.kb-yer[data-j="${j}"]`) })), { el: d.dugme }];
     },
     ilerleme() {

@@ -94,6 +94,7 @@
     sesAcik: s('<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"/>'),
     sesKapali: s('<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9l5 6M22 9l-5 6"/>'),
     el: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11V4.5a1.5 1.5 0 0 1 3 0V10h.5V8.5a1.5 1.5 0 0 1 3 0V10h.5V9.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-1.2a5 5 0 0 1-3.9-1.9L4.3 15a1.5 1.5 0 0 1 2.3-1.9L9 15.5z" fill="#ffd6b0" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
+    cevap: s('<path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/>'),
     kilit: s('<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>'),
     oynat: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5l11 7-11 7z" fill="currentColor"/></svg>',
     ileri: s('<path d="M5 12h14M13 6l6 6-6 6"/>'),
@@ -109,7 +110,7 @@
   // ---------- Oyunların ortak parçaları ----------
   // Bölüm noktaları: kolaydan zora sıralı, yazısız. Bir bölüm bitmeden sonrakine geçilmez.
   // etiketler yalnız bölüm sayısını ve zorluk kümelerini (noktalar arası küçük boşluk) verir.
-  const bolumAcik = (i, bitti) => i === 0 || bitti.includes(i) || bitti.includes(i - 1);
+  const bolumAcik = (i, bitti) => ogretmenMi() || i === 0 || bitti.includes(i) || bitti.includes(i - 1);
   let sonBolum = null; // sesli yönerge 1. bölüme her gelişte okunur
   function bolumNoktalari(nav, { etiketler, idx, bitti, sec }) {
     if (idx === 0 && sonBolum !== 0) konus(YONERGE[aktifNo]);
@@ -266,11 +267,79 @@
             <div class="durum">${IKON.oynat.replace("<svg", '<svg width="16" height="16"')} ${hazir} oyun</div></a>`;
         }).join("")}</section>
         <p class="not">Öğretmen notu: Her oyun ilk açıldığında bir el nasıl oynanacağını gösterir; üstteki el düğmesiyle istediğiniz an yeniden izletebilirsiniz. "Çok zor" bölümler meraklı ve hızlı ilerleyen çocuklar içindir, herkesin bitirmesi gerekmez. Oyunları akıllı tahtada tam ekran açabilirsiniz. Çocuğun ilerlemesi bu cihazdaki tarayıcıda saklanır.</p>
-        <div class="sifirla-yer"><button class="dugme" type="button" data-sifirla>${IKON.tekrar}<span>Tüm oyunları sıfırla</span></button></div>
+        <div class="sifirla-yer"><button class="dugme${ogretmenMi() ? " ogretmen-acik" : ""}" type="button" data-ogretmen>${IKON.cevap}<span>${ogretmenMi() ? "Öğretmen modu açık · Kapat" : "Öğretmen modu"}</span></button><button class="dugme" type="button" data-sifirla>${IKON.tekrar}<span>Tüm oyunları sıfırla</span></button></div>
       </main>`;
     tamEkranDugmeleriniGuncelle();
     kok().querySelector("[data-tam-ekran]").onclick = tamEkranDegistir;
     kok().querySelector("[data-sifirla]").onclick = sifirlaSor;
+    kok().querySelector("[data-ogretmen]").onclick = () => (ogretmenMi() ? ogretmenKapat() : ogretmenAc());
+  }
+
+  // ---------- Öğretmen modu ----------
+  // Öğretmen e-postasını yazar, Supabase 6 haneli kod gönderir; kod doğrulanınca bu cihazda öğretmen modu açılır:
+  // bütün bölümler açılır ve oyunlarda "Cevabı göster" düğmesi çıkar.
+  const SUPABASE_URL = "https://psmhycpnoyupyhnxhcpq.supabase.co";
+  const SUPABASE_ANAHTAR = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzbWh5Y3Bub3l1cHlobnhoY3BxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM3MjM3ODEsImV4cCI6MjEwOTI5OTc4MX0.S9MzEw0RZzDGwmeo7JPipWHvFji0hSsvO5vEIJ4D6BE";
+  function ogretmenMi() { return !!kayit.oku("ogretmen", null); }
+  let supa = null;
+  function supabaseYukle() {
+    if (supa) return Promise.resolve(supa);
+    return new Promise((coz, red) => {
+      const sc = document.createElement("script");
+      sc.src = "js/vendor/supabase-2.45.4.js"; // @supabase/supabase-js 2.45.4 (MIT), siteyle birlikte gelir
+      sc.onload = () => { try { supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANAHTAR); coz(supa); } catch (e) { red(e); } };
+      sc.onerror = () => red(new Error("yuklenemedi"));
+      document.head.appendChild(sc);
+    });
+  }
+  function ogretmenAc() {
+    const ortu = document.createElement("div");
+    ortu.className = "sf-ortu";
+    ortu.innerHTML = `<form class="sf-kutu og-kutu" role="dialog" aria-label="Öğretmen modu" novalidate>
+        <h2>Öğretmen modu</h2>
+        <p data-aciklama>E-posta adresinizi yazın, size 6 haneli bir kod gönderelim.</p>
+        <input class="og-girdi" type="email" name="eposta" autocomplete="email" inputmode="email" placeholder="ornek@okul.k12.tr" required>
+        <input class="og-girdi og-kod" type="text" name="kod" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••" hidden>
+        <p class="og-hata" role="alert" hidden></p>
+        <div class="kt-satir"><button class="dugme" type="button" data-vazgec>Vazgeç</button><button class="dugme og-ana" type="submit">Kod gönder</button></div>
+      </form>`;
+    document.body.appendChild(ortu);
+    const form = ortu.querySelector("form"), eposta = form.eposta, kod = form.kod, hata = form.querySelector(".og-hata"), ana = form.querySelector(".og-ana"), aciklama = form.querySelector("[data-aciklama]");
+    let asama = "eposta";
+    const hataYaz = (m) => { hata.textContent = m; hata.hidden = !m; };
+    const kapat = () => ortu.remove();
+    ortu.addEventListener("click", (e) => { if (e.target === ortu || e.target.closest("[data-vazgec]")) kapat(); });
+    eposta.focus();
+    form.onsubmit = async (e) => {
+      e.preventDefault(); hataYaz("");
+      ana.disabled = true;
+      const adres = eposta.value.trim();
+      if (asama === "eposta" && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(adres)) { hataYaz("Geçerli bir e-posta adresi yazın."); ana.disabled = false; return; }
+      if (asama === "kod" && !/^\d{6}$/.test(kod.value.trim())) { hataYaz("6 haneli kodu yazın."); ana.disabled = false; return; }
+      try {
+        const sb = await supabaseYukle();
+        if (asama === "eposta") {
+          const { error } = await sb.auth.signInWithOtp({ email: adres, options: { shouldCreateUser: true } });
+          if (error) { hataYaz(/not.authorized/i.test(error.message + error.code) ? "Bu adrese şu an kod gönderilemiyor. Site yöneticisine haber verin." : /fetch|network/i.test(error.message) ? "Bağlantı kurulamadı. İnternet bağlantınızı kontrol edin." : /rate|seconds|limit/i.test(error.message) ? "Çok sık kod istendi. Biraz bekleyip yeniden deneyin." : "Kod gönderilemedi: " + error.message); return; }
+          asama = "kod"; eposta.readOnly = true; kod.hidden = false; kod.focus();
+          aciklama.textContent = `${adres} adresine gelen 6 haneli kodu yazın. Gelen kutusunda yoksa istenmeyen klasörüne bakın.`;
+          ana.textContent = "Doğrula";
+        } else {
+          const { error } = await sb.auth.verifyOtp({ email: eposta.value.trim(), token: kod.value.trim(), type: "email" });
+          if (error) { hataYaz("Kod doğru değil ya da süresi dolmuş."); return; }
+          kayit.yaz("ogretmen", { eposta: eposta.value.trim(), an: Date.now() });
+          ses.yerlesti();
+          form.innerHTML = `<h2>Öğretmen modu açıldı</h2><p>Bu cihazda bütün bölümler açık. Oyunlarda ${IKON.cevap.replace("<svg", '<svg width="18" height="18" style="vertical-align:-3px"')} düğmesiyle cevabı görebilirsiniz.</p><button class="dugme" type="button" data-vazgec>Tamam</button>`;
+          anaokuluSayfa();
+        }
+      } catch (err) { hataYaz("Bağlantı kurulamadı. İnternet bağlantınızı kontrol edin."); }
+      finally { ana.disabled = false; }
+    };
+  }
+  async function ogretmenKapat() {
+    try { localStorage.removeItem("mk:ogretmen"); } catch (e) {}
+    try { const sb = await supabaseYukle(); await sb.auth.signOut(); } catch (e) {}
+    anaokuluSayfa();
   }
 
   // Bütün ilerlemeyi silmeden önce yetişkin onayı: resimdeki 4 rakamı tuşla
@@ -300,7 +369,7 @@
       ses.tik(); goster();
       if (yazilan.length === 4) {
         if (yazilan === kod) {
-          try { Object.keys(localStorage).filter((k) => k.startsWith("mk:") && k !== "mk:ses").forEach((k) => localStorage.removeItem(k)); } catch (e) {}
+          try { Object.keys(localStorage).filter((k) => k.startsWith("mk:") && k !== "mk:ses" && k !== "mk:ogretmen").forEach((k) => localStorage.removeItem(k)); } catch (e) {}
           ortu.querySelector(".sf-kutu").innerHTML = `<h2>Sıfırlandı</h2><p>Bütün oyunlar ilk bölümden başlayacak.</p><button class="dugme" type="button" data-t="tamam">Tamam</button>`;
           ses.yerlesti();
         } else {
@@ -357,6 +426,7 @@
           <div class="oyun-basligi"><b>${h.ad}</b></div>
           <span class="ust-bosluk"></span>
           <div class="oyun-araclari" style="display:flex;gap:10px"></div>
+          ${ogretmenMi() ? `<button class="dugme kare cevap-dugme" data-cevap type="button" aria-label="Cevabı göster">${IKON.cevap}</button>` : ""}
           <button class="dugme kare" data-nasil type="button" aria-label="Nasıl oynanır">${IKON.el}</button>
           <button class="dugme kare" data-ses type="button"></button>
           <button class="dugme" data-tam-ekran type="button"></button>
@@ -380,6 +450,8 @@
     if (!o.ipucu) ipDugme.hidden = true;
     else {
       ipDugme.onclick = () => ipucuGoster(o);
+      const cvp = kok().querySelector("[data-cevap]");
+      if (cvp) cvp.onclick = () => ipucuGoster(o, true);
       // İlk açılışta gösterimi kendiliğinden oynat
       if (!kayit.oku("ipucu:" + no, false)) { kayit.yaz("ipucu:" + no, true); ipucuZamanla = setTimeout(() => ipucuGoster(o), 900); }
     }
@@ -459,12 +531,12 @@
   }
   function sus() { try { speechSynthesis.cancel(); } catch (e) {} }
 
-  async function ipucuGoster(o) {
+  async function ipucuGoster(o, tam = false) {
     ipucuKapat();
     konus(YONERGE[aktifNo]);
     const tur = ipucuTur, bekle = (ms) => new Promise((r) => setTimeout(r, ms));
     let adimlar = [];
-    try { adimlar = (o.ipucu() || []).filter((a) => a && merkez(a.el)); } catch (e) { adimlar = []; }
+    try { adimlar = (o.ipucu(tam) || []).filter((a) => a && merkez(a.el)); } catch (e) { adimlar = []; }
     if (!adimlar.length) return;
     const ortu = document.createElement("div");
     ortu.className = "ip-ortu";

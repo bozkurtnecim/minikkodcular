@@ -260,9 +260,9 @@
   window.Uygulama.oyunEkle(34, {
     baslat,
     bitir() { if (d && d.gozlemci) d.gozlemci.disconnect(); if (d) d.uid++; d = null; },
-    ipucu() {
+    ipucu(tam) {
       if (!d || !d.cozum.enKisa) return [];
-      const sol = [...d.cozum.enKisa].slice(0, 2);
+      const sol = [...d.cozum.enKisa].slice(0, tam ? undefined : 2);
       return [{ el: d.arac }, ...sol.map((k, j) => ({ el: d.sahne.querySelector(`.sp-kart[data-k="${k}"]`), hedef: d.sahne.querySelector(`.sp-yer[data-j="${j}"]`) })), { el: d.dugme }];
     },
     ilerleme() {

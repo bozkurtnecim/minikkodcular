@@ -427,10 +427,13 @@
 
   window.Uygulama.oyunEkle(19, {
     // Nasıl oynanır: elin göstereceği doğru hamle
-    ipucu() {
+    ipucu(tam) {
       if (!d || !d.cozum || !d.cozum.enKisa) return [];
-      const [y, n] = d.cozum.enKisa[0], yer = d.sahne.querySelector('.rk-yer[data-j="0"]');
-      return [...(n > 1 ? [{ el: d.sahne.querySelector(`.rk-ok[data-n="${n}"]`), hedef: yer }] : []), { el: d.sahne.querySelector(`.rk-ok[data-y="${y}"]`), hedef: yer }, { el: d.sahne.querySelector(".rk-calistir") }];
+      const adimlar = d.cozum.enKisa.slice(0, tam ? undefined : 1).flatMap(([y, n], j) => {
+        const yer = d.sahne.querySelector(`.rk-yer[data-j="${j}"]`);
+        return [...(n > 1 ? [{ el: d.sahne.querySelector(`.rk-ok[data-n="${n}"]`), hedef: yer }] : []), { el: d.sahne.querySelector(`.rk-ok[data-y="${y}"]`), hedef: yer }];
+      });
+      return [...adimlar, { el: d.sahne.querySelector(".rk-calistir") }];
     },
     baslat,
     bitir() { if (d && d.gozlemci) d.gozlemci.disconnect(); if (d) d.uid++; d = null; },

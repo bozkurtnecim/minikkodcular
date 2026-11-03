@@ -460,12 +460,15 @@
 
   window.Uygulama.oyunEkle(22, {
     // Nasıl oynanır: elin göstereceği doğru hamle
-    ipucu() {
+    ipucu(tam) {
       if (!d || !d.cozum || !d.cozum.enKisa) return [];
       const basla = d.sahne.querySelector(".ah-basla"), ilk = d.sahne.querySelector('.ah-yer[data-j="0"]');
-      if (BOLUMLER[d.idx].bozuk) return [{ el: basla }, { el: ilk }];
-      const { y, n } = d.cozum.enKisa[0];
-      return [{ el: d.sahne.querySelector(`.ah-ok[data-y="${y}"]`), hedef: ilk }, ...(n > 1 ? [{ el: ilk, kez: n - 1 }] : []), { el: basla }];
+      if (BOLUMLER[d.idx].bozuk && !tam) return [{ el: basla }, { el: ilk }];
+      const adimlar = d.cozum.enKisa.slice(0, tam ? undefined : 1).flatMap(({ y, n }, j) => {
+        const yer = d.sahne.querySelector(`.ah-yer[data-j="${j}"]`) || ilk;
+        return [{ el: d.sahne.querySelector(`.ah-ok[data-y="${y}"]`), hedef: yer }, ...(n > 1 ? [{ el: yer, kez: n - 1 }] : [])];
+      });
+      return [...adimlar, { el: basla }];
     },
     baslat,
     bitir() { if (d && d.gozlemci) d.gozlemci.disconnect(); if (d) d.uid++; d = null; },

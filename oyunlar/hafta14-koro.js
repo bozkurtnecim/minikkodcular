@@ -206,9 +206,9 @@
 
   window.Uygulama.oyunEkle(14, {
     // Nasıl oynanır: elin göstereceği doğru hamle
-    ipucu() {
+    ipucu(tam) {
       if (!d || !d.dizi) return [];
-      return [{ el: d.sahne.querySelector(".kr-dugme") }, ...d.dizi.slice(0, 2).map((j) => ({ el: d.sahne.querySelector(`.kr-hayvan[data-j="${j}"]`) }))];
+      return [{ el: d.sahne.querySelector(".kr-dugme") }, ...d.dizi.slice(0, tam ? undefined : 2).map((j) => ({ el: d.sahne.querySelector(`.kr-hayvan[data-j="${j}"]`) }))];
     },
     baslat,
     bitir() { if (d && d.gozlemci) d.gozlemci.disconnect(); if (d) d.uid++; d = null; },

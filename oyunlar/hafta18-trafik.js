@@ -422,9 +422,9 @@
 
   window.Uygulama.oyunEkle(18, {
     // Nasıl oynanır: elin göstereceği doğru hamle
-    ipucu() {
+    ipucu(tam) {
       if (!d || !d.cozum || !d.cozum.enKisa) return [];
-      const sol = [...d.cozum.enKisa].slice(0, 2);
+      const sol = [...d.cozum.enKisa].slice(0, tam ? undefined : 2);
       return [...sol.map((y, j) => ({ el: d.sahne.querySelector(`.tr-ok[data-y="${y}"]`), hedef: d.sahne.querySelector(`.tr-yer[data-j="${j}"]`) })), { el: d.sahne.querySelector(".tr-calistir") }];
     },
     baslat,

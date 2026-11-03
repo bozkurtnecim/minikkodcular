@@ -15,3 +15,9 @@ Site sabit dosyalardan oluşur (HTML + JavaScript), GitHub Pages gibi her statik
 - `oyunlar/`: her oyun kendi dosyasında (`haftaNN-*.js`)
 
 Çocuğun ilerlemesi tarayıcının yerel deposunda (localStorage) saklanır.
+
+## Öğretmen modu
+
+Anaokulu sayfasındaki "Öğretmen modu" düğmesi öğretmenin e-postasına 6 haneli bir kod gönderir (Supabase Auth).
+Kod doğrulanınca o cihazda bütün bölümler açılır ve oyunlarda "Cevabı göster" düğmesi çıkar.
+Supabase istemci kütüphanesi `js/vendor/` içindedir (MIT).

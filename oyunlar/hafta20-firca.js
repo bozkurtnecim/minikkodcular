@@ -426,9 +426,9 @@
 
   window.Uygulama.oyunEkle(20, {
     // Nasıl oynanır: elin göstereceği doğru hamle
-    ipucu() {
+    ipucu(tam) {
       if (!d || !d.cozum || !d.cozum.enKisa) return [];
-      const sol = [...d.cozum.enKisa].slice(0, 2);
+      const sol = [...d.cozum.enKisa].slice(0, tam ? undefined : 2);
       return [...sol.map((y, j) => ({ el: d.sahne.querySelector(`.fr-ok[data-y="${y}"]`), hedef: d.sahne.querySelector(`.fr-yer[data-j="${j}"]`) })), { el: d.sahne.querySelector(".fr-calistir") }];
     },
     baslat,

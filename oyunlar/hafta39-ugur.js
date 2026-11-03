@@ -296,12 +296,12 @@
   window.Uygulama.oyunEkle(39, {
     baslat,
     bitir() { if (d && d.gozlemci) d.gozlemci.disconnect(); if (d) d.uid++; d = null; },
-    ipucu() {
+    ipucu(tam) {
       if (!d) return [];
       const b = BOLUMLER[d.idx];
       // Doğrudan kumandada: böcek → sıradaki doğru karta dokun. Planda: ilk iki kartı şeride taşı, sonra Başla.
       if (!b.plan) { const kalan = coz({ ...b, bas: d.yer, damla: b.damla.filter((_, q) => !d.alinan.has(q)) }, b.izin) || ""; return [{ el: d.bocek }, ...(kalan ? [{ el: d.sahne.querySelector(`.ub-kart[data-k="${kalan[0]}"]`) }] : [])]; }
-      const sol = [...b.cozum].slice(0, 2);
+      const sol = [...b.cozum].slice(0, tam ? undefined : 2);
       return [{ el: d.bocek }, ...sol.map((k, j) => ({ el: d.sahne.querySelector(`.ub-kart[data-k="${k}"]`), hedef: d.sahne.querySelector(`.ub-yer[data-j="${j}"]`) })), { el: d.dugme }];
     },
     ilerleme() {

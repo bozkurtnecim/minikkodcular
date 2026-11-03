@@ -316,10 +316,10 @@
 
   window.Uygulama.oyunEkle(13, {
     // Nasıl oynanır: elin göstereceği doğru hamle
-    ipucu() {
+    ipucu(tam) {
       if (!d) return [];
       const s = BOLUMLER[d.idx].siparis;
-      return [...s.slice(0, 2).map((m) => ({ el: d.sahne.querySelector(`.as-malzeme[data-m="${m}"]`) })), { el: d.sahne.querySelector(".as-zil") }];
+      return [...s.slice(0, tam ? undefined : 2).map((m) => ({ el: d.sahne.querySelector(`.as-malzeme[data-m="${m}"]`) })), { el: d.sahne.querySelector(".as-zil") }];
     },
     baslat,
     bitir() { if (d && d.gozlemci) d.gozlemci.disconnect(); if (d) d.uid++; d = null; },
