@@ -573,6 +573,10 @@
       try {
         const sb = await supabaseYukle();
         if (asama === "eposta") {
+          // Yalnız öğretmen listesindeki (Supabase: ogretmenler tablosu) adreslere kod gönderilir
+          const { data: izinli, error: le } = await sb.rpc("ogretmen_mi", { p_eposta: adres });
+          if (le) { hataYaz("Bağlantı kurulamadı. İnternet bağlantınızı kontrol edin."); return; }
+          if (!izinli) { hataYaz("Bu e-posta öğretmen listesinde yok. Öğretmen modunu kullanmak için site yöneticisine yazarak e-postanızı ekletin."); return; }
           const { error } = await sb.auth.signInWithOtp({ email: adres, options: { shouldCreateUser: true } });
           if (error) { hataYaz(/not.authorized/i.test(error.message + error.code) ? "Bu adrese şu an kod gönderilemiyor. Site yöneticisine haber verin." : /fetch|network/i.test(error.message) ? "Bağlantı kurulamadı. İnternet bağlantınızı kontrol edin." : /rate|seconds|limit/i.test(error.message) ? "Çok sık kod istendi. Biraz bekleyip yeniden deneyin." : "Kod gönderilemedi: " + error.message); return; }
           asama = "kod"; eposta.readOnly = true; kod.hidden = false; kod.focus();
