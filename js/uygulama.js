@@ -274,13 +274,14 @@
             <div class="durum">${IKON.oynat.replace("<svg", '<svg width="16" height="16"')} ${hazir} oyun</div></a>`;
         }).join("")}</section>
         <p class="not">Öğretmen notu: Her oyun ilk açıldığında bir el nasıl oynanacağını gösterir; üstteki el düğmesiyle istediğiniz an yeniden izletebilirsiniz. "Çok zor" bölümler meraklı ve hızlı ilerleyen çocuklar içindir, herkesin bitirmesi gerekmez. Oyunları akıllı tahtada tam ekran açabilirsiniz. Çocuğun ilerlemesi bu cihazdaki tarayıcıda saklanır.</p>
-        <div class="sifirla-yer"><button class="dugme${ogretmenMi() ? " ogretmen-acik" : ""}" type="button" data-ogretmen>${IKON.cevap}<span>${ogretmenMi() ? "Öğretmen modu açık · Kapat" : "Öğretmen modu"}</span></button>${ogretmenMi() && hesapAdi() ? `<button class="dugme ogretmen-acik" type="button" data-duzenle-ac>${IKON.cevap}<span>${hesapAdi().replace(/[<>&"]/g, "")} · İlerlemeyi düzenle</span></button>` : ""}<button class="dugme" type="button" data-sifirla>${IKON.tekrar}<span>Tüm oyunları sıfırla</span></button></div>
+        <div class="sifirla-yer"><button class="dugme${ogretmenMi() ? " ogretmen-acik" : ""}" type="button" data-ogretmen>${IKON.cevap}<span>${ogretmenMi() ? "Öğretmen modu açık · Kapat" : "Öğretmen modu"}</span></button>${ogretmenMi() ? `<button class="dugme ogretmen-acik" type="button" data-araclar>${IKON.kisi}<span>Öğretmen araçları</span></button>` : ""}${ogretmenMi() && hesapAdi() ? `<button class="dugme ogretmen-acik" type="button" data-duzenle-ac>${IKON.cevap}<span>${hesapAdi().replace(/[<>&"]/g, "")} · İlerlemeyi düzenle</span></button>` : ""}<button class="dugme" type="button" data-sifirla>${IKON.tekrar}<span>Tüm oyunları sıfırla</span></button></div>
       </main>`;
     tamEkranDugmeleriniGuncelle();
     kok().querySelector("[data-tam-ekran]").onclick = tamEkranDegistir;
     kok().querySelector("[data-sifirla]").onclick = sifirlaSor;
     kok().querySelector("[data-ogretmen]").onclick = () => (ogretmenMi() ? ogretmenKapat() : ogretmenAc());
     const dz = kok().querySelector("[data-duzenle-ac]"); if (dz) dz.onclick = ilerlemeDuzenle;
+    const ar = kok().querySelector("[data-araclar]"); if (ar) ar.onclick = ogretmenAraclari;
   }
 
   // ---------- Hesap: kullanıcı adı + şifre, ilerleme Supabase'de ----------
@@ -340,16 +341,20 @@
     await sb.from("ilerleme").upsert({ kullanici_id: data.session.user.id, veri, guncelleme: new Date().toISOString() });
     return true;
   }
-  async function oturumAc(cvp, hatirla) {
+  async function oturumAc(cvp, hatirla, yardim = false) {
     try { localStorage.setItem("mk:hatirla", hatirla ? "1" : "0"); } catch (e) {}
+    try { if (yardim) { sessionStorage.setItem("mk:yardim", "1"); Object.keys(localStorage).filter(ilerlemeAnahtari).forEach((k) => localStorage.removeItem(k)); } else sessionStorage.removeItem("mk:yardim"); } catch (e) {}
     hesapIstemci = null;
     const sb = await hesapSb();
     await sb.auth.setSession(cvp.oturum);
     try { hesapDepo().setItem("mk:hesap", cvp.kullanici); } catch (e) {}
     await hesapEsitle();
   }
+  const yardimda = () => { try { return sessionStorage.getItem("mk:yardim") === "1"; } catch (e) { return false; } };
   async function cikisYap() {
-    try { const sb = await hesapSb(); await hesapGonder(); await sb.auth.signOut(); } catch (e) {}
+    // Yardım girişinde oturum yalnız bu cihazda kapanır (çocuğun kendi oturumları sürer)
+    try { const sb = await hesapSb(); await hesapGonder(); await sb.auth.signOut(yardimda() ? { scope: "local" } : undefined); } catch (e) {}
+    try { if (yardimda()) { sessionStorage.removeItem("mk:yardim"); localStorage.setItem("mk:hatirla", "1"); } } catch (e) {}
     try { localStorage.removeItem("mk:hesap"); sessionStorage.removeItem("mk:hesap"); } catch (e) {}
     // Paylaşılan cihazda sonraki çocuk öncekinin ilerlemesini görmesin
     try { Object.keys(localStorage).filter(ilerlemeAnahtari).forEach((k) => localStorage.removeItem(k)); } catch (e) {}
@@ -358,7 +363,7 @@
   }
   function hesapDugmesi() {
     const ad = hesapAdi();
-    return `<button class="dugme hesap-dugme${ad ? " girisli" : ""}" data-hesap type="button" aria-label="${ad ? "Hesabım" : "Giriş yap"}">${IKON.kisi}<span class="etiket">${ad ? ad.replace(/[<>&"]/g, "") : "Giriş yap"}</span></button>`;
+    return `<button class="dugme hesap-dugme${ad ? " girisli" : ""}${ad && yardimda() ? " yardim" : ""}" data-hesap type="button" aria-label="${ad ? "Hesabım" : "Giriş yap"}">${IKON.kisi}<span class="etiket">${ad ? ad.replace(/[<>&"]/g, "") : "Giriş yap"}</span></button>`;
   }
   const HESAP_HATA = {
     kullanici_gecersiz: "Kullanıcı adı 3-20 karakter olmalı; harf, rakam, nokta, alt çizgi ya da tire kullanın.",
@@ -403,7 +408,8 @@
         <p class="og-hata" role="alert" hidden></p>
         <button class="dugme og-ana" type="submit">Kod gönder</button>
         <div class="hs-baglar"><button type="button" class="hs-bag" data-kip="giris">Girişe dön</button></div>`,
-      hesap: `<h2>Merhaba, ${(hesapAdi() || "").replace(/[<>&"]/g, "")}!</h2>
+      hesap: `<h2>${yardimda() ? "Yardım: " : "Merhaba, "}${(hesapAdi() || "").replace(/[<>&"]/g, "")}${yardimda() ? "" : "!"}</h2>
+        ${yardimda() ? `<p class="hs-yardim">Bu hesaba yönetici olarak girdiniz. İşiniz bitince çıkış yapın.</p>` : ""}
         <p>İlerlemen hesabına kaydediliyor. Başka bir cihazda aynı kullanıcı adıyla giriş yaparsan kaldığın yerden devam edersin.</p>
         ${ogretmenMi() ? `<button class="dugme" type="button" data-duzenle>${IKON.cevap}<span>İlerlemeyi düzenle</span></button>` : ""}
         <button class="dugme og-ana" type="button" data-cikis>Çıkış yap</button>`,
@@ -516,6 +522,56 @@
     });
   }
 
+  // ---------- Öğretmen araçları ----------
+  // Şifre belirle: listedeki her öğretmen, şifresini unutan çocuğa yeni şifre verir.
+  // Hesaba gir: yalnız yönetici; kullanıcı adıyla şifresiz o hesaba geçer (yardım için). Sunucu öğretmen oturumunu doğrular.
+  function ogretmenAraclari() {
+    const bilgi = kayit.oku("ogretmen", {}) || {}, yonetici = bilgi.yetki === "yonetici";
+    const ortu = document.createElement("div");
+    ortu.className = "sf-ortu";
+    ortu.innerHTML = `<form class="sf-kutu og-kutu hs-kutu" role="dialog" aria-label="Öğretmen araçları" novalidate><button type="button" class="hs-kapat" aria-label="Kapat" data-kapat>✕</button>
+      <h2>Öğretmen araçları</h2>
+      <div class="ar-sekmeler"><button type="button" class="ar-sekme secili" data-sekme="sifre">Şifre belirle</button>${yonetici ? `<button type="button" class="ar-sekme" data-sekme="gir">Hesaba gir</button>` : ""}</div>
+      <p data-aciklama>Şifresini unutan çocuğun kullanıcı adını ve yeni şifresini yazın.</p>
+      <input class="og-girdi" name="kullanici" autocomplete="off" placeholder="Kullanıcı adı" required>
+      <input class="og-girdi" name="sifre" type="text" autocomplete="off" placeholder="Yeni şifre (en az 6 karakter)">
+      <p class="og-hata" role="alert" hidden></p>
+      <button class="dugme og-ana" type="submit">Şifreyi değiştir</button></form>`;
+    document.body.appendChild(ortu);
+    const form = ortu.querySelector("form"), hata = form.querySelector(".og-hata"), ana = form.querySelector(".og-ana");
+    let sekme = "sifre";
+    const hataYaz = (m, iyi) => { hata.textContent = m; hata.hidden = !m; hata.classList.toggle("og-iyi", !!iyi); };
+    ortu.addEventListener("click", (e) => {
+      if (e.target === ortu || e.target.closest("[data-kapat]")) return ortu.remove();
+      const b = e.target.closest("[data-sekme]"); if (!b) return;
+      sekme = b.dataset.sekme; hataYaz("");
+      form.querySelectorAll(".ar-sekme").forEach((x) => x.classList.toggle("secili", x === b));
+      form.sifre.hidden = sekme === "gir";
+      form.querySelector("[data-aciklama]").textContent = sekme === "gir" ? "Yardım etmek istediğiniz hesabın kullanıcı adını yazın. Bu cihazda o hesaba geçilir." : "Şifresini unutan çocuğun kullanıcı adını ve yeni şifresini yazın.";
+      ana.textContent = sekme === "gir" ? "Hesaba gir" : "Şifreyi değiştir";
+    });
+    form.kullanici.focus();
+    form.onsubmit = async (e) => {
+      e.preventDefault(); hataYaz("");
+      const ad = form.kullanici.value.trim(), sifre = form.sifre.value;
+      if (!ad) return hataYaz("Kullanıcı adını yazın.");
+      if (sekme === "sifre" && sifre.length < 6) return hataYaz(HESAP_HATA.sifre_kisa);
+      ana.disabled = true;
+      try {
+        const sb = await supabaseYukle(), { data } = await sb.auth.getSession();
+        if (!data.session) return hataYaz("Öğretmen oturumunuz bulunamadı. Öğretmen modunu kapatıp yeniden açın.");
+        const y = await fetch(HESAP_FONK, { method: "POST", headers: { "Content-Type": "application/json", apikey: SUPABASE_ANAHTAR_SABIT, Authorization: "Bearer " + data.session.access_token },
+          body: JSON.stringify({ islem: sekme === "gir" ? "yonetici_giris" : "ogretmen_sifre", kullanici: ad, sifre }) });
+        let cvp = {}; try { cvp = await y.json(); } catch (er) {}
+        if (cvp.hata) return hataYaz({ yetki_yok: "Bu işlem için yetkiniz yok.", kullanici_yok: "Bu kullanıcı adı bulunamadı." }[cvp.hata] || HESAP_HATA[cvp.hata] || "Bir sorun oldu, yeniden deneyin.");
+        if (sekme === "sifre") { form.sifre.value = ""; return hataYaz(`${cvp.kullanici} için yeni şifre kaydedildi.`, true); }
+        await oturumAc(cvp, false, true);
+        ses.yerlesti(); ortu.remove(); yonlendir();
+      } catch (err) { hataYaz("Bağlantı kurulamadı. İnternet bağlantınızı kontrol edin."); }
+      finally { ana.disabled = false; }
+    };
+  }
+
   // ---------- Öğretmen modu ----------
   // Öğretmen e-postasını yazar, Supabase bir giriş kodu gönderir; kod doğrulanınca bu cihazda öğretmen modu açılır:
   // bütün bölümler açılır ve oyunlarda "Cevabı göster" düğmesi çıkar.
@@ -537,11 +593,11 @@
   }
   function supabaseYukle() {
     if (supa) return Promise.resolve(supa);
-    if (window.supabase) { supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANAHTAR, { auth: { persistSession: false, autoRefreshToken: false, storageKey: "mk-ogretmen" } }); return Promise.resolve(supa); }
+    if (window.supabase) { supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANAHTAR, { auth: { persistSession: true, autoRefreshToken: true, storage: localStorage, storageKey: "mk-ogretmen" } }); return Promise.resolve(supa); }
     return new Promise((coz, red) => {
       const sc = document.createElement("script");
       sc.src = "js/vendor/supabase-2.45.4.js"; // @supabase/supabase-js 2.45.4 (MIT), siteyle birlikte gelir
-      sc.onload = () => { try { supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANAHTAR, { auth: { persistSession: false, autoRefreshToken: false, storageKey: "mk-ogretmen" } }); coz(supa); } catch (e) { red(e); } };
+      sc.onload = () => { try { supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANAHTAR, { auth: { persistSession: true, autoRefreshToken: true, storage: localStorage, storageKey: "mk-ogretmen" } }); coz(supa); } catch (e) { red(e); } };
       sc.onerror = () => red(new Error("yuklenemedi"));
       document.head.appendChild(sc);
     });
@@ -585,7 +641,9 @@
         } else {
           const { error } = await sb.auth.verifyOtp({ email: eposta.value.trim(), token: kod.value.replace(/\s/g, ""), type: "email" });
           if (error) { hataYaz("Kod doğru değil ya da süresi dolmuş."); return; }
-          kayit.yaz("ogretmen", { eposta: eposta.value.trim(), an: Date.now() });
+          let yetki = "ogretmen";
+          try { const { data: y } = await sb.rpc("ogretmen_yetkim"); if (y) yetki = y; } catch (e) {}
+          kayit.yaz("ogretmen", { eposta: eposta.value.trim(), an: Date.now(), yetki });
           ses.yerlesti();
           form.innerHTML = `<h2>Öğretmen modu açıldı</h2><p>Bu cihazda bütün bölümler açık. Oyunlarda ${IKON.cevap.replace("<svg", '<svg width="18" height="18" style="vertical-align:-3px"')} düğmesiyle cevabı görebilirsiniz.</p><button class="dugme" type="button" data-vazgec>Tamam</button>`;
           anaokuluSayfa();

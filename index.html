@@ -178,6 +178,12 @@ body.oyunda { overflow: hidden; }
 .hs-baglar { display: grid; gap: 4px; justify-items: center; }
 .hs-bag { border: 0; background: none; padding: 6px; color: var(--mavi); font: 800 .95rem var(--f-govde); cursor: pointer; text-decoration: underline; }
 .hs-kutu .og-ana { width: 100%; }
+.hesap-dugme.yardim { background: #ffe1c4; }
+.hs-yardim { color: #c4600c !important; font-weight: 800 !important; }
+.og-hata.og-iyi { color: var(--yesil) !important; }
+.ar-sekmeler { display: flex; gap: 6px; padding: 4px; border-radius: 14px; background: var(--zemin); justify-self: center; }
+.ar-sekme { border: 0; border-radius: 10px; padding: 8px 14px; background: none; font: 800 .95rem var(--f-govde); color: var(--murekkep-2); cursor: pointer; }
+.ar-sekme.secili { background: #fff; color: var(--murekkep); box-shadow: 0 2px 0 rgba(29,40,70,.12); }
 .dz-kutu { position: relative; width: min(100%, 760px); max-height: calc(100vh - 32px); grid-template-rows: auto auto minmax(0, 1fr) auto; text-align: left; justify-items: stretch; }
 .dz-kutu h2, .dz-kutu > p { text-align: center; padding: 0 40px; }
 .dz-liste { overflow-y: auto; display: grid; gap: 10px; padding: 4px 2px; }
@@ -263,49 +269,49 @@ body.oyunda { overflow: hidden; }
 
 <div id="uygulama"></div>
 
-<script src="js/resimler.js?v=5"></script>
-<script src="js/nesneler.js?v=5"></script>
-<script src="js/rutinler.js?v=5"></script>
-<script src="js/uygulama.js?v=5"></script>
-<script src="oyunlar/hafta01-yapboz.js?v=5"></script>
-<script src="oyunlar/hafta02-sirala.js?v=5"></script>
-<script src="oyunlar/hafta03-boncuk.js?v=5"></script>
-<script src="oyunlar/hafta04-buyukluk.js?v=5"></script>
-<script src="oyunlar/hafta05-golge.js?v=5"></script>
-<script src="oyunlar/hafta06-siniflandir.js?v=5"></script>
-<script src="oyunlar/hafta07-sekiller.js?v=5"></script>
-<script src="oyunlar/hafta08-rutin.js?v=5"></script>
-<script src="oyunlar/hafta09-renk.js?v=5"></script>
-<script src="oyunlar/hafta10-dans.js?v=5"></script>
-<script src="oyunlar/hafta11-tren.js?v=5"></script>
-<script src="oyunlar/hafta12-boru.js?v=5"></script>
-<script src="oyunlar/hafta13-asci.js?v=5"></script>
-<script src="oyunlar/hafta14-koro.js?v=5"></script>
-<script src="oyunlar/hafta15-tangram.js?v=5"></script>
-<script src="oyunlar/hafta16-ari.js?v=5"></script>
-<script src="oyunlar/hafta17-tavsan.js?v=5"></script>
-<script src="oyunlar/hafta18-trafik.js?v=5"></script>
-<script src="oyunlar/hafta19-roket.js?v=5"></script>
-<script src="oyunlar/hafta20-firca.js?v=5"></script>
-<script src="oyunlar/hafta21-halka.js?v=5"></script>
-<script src="oyunlar/hafta22-ahtapot.js?v=5"></script>
-<script src="js/dongu-motoru.js?v=5"></script>
-<script src="oyunlar/hafta23-kule.js?v=5"></script>
-<script src="oyunlar/hafta24-sifre.js?v=5"></script>
-<script src="oyunlar/hafta25-hangi.js?v=5"></script>
-<script src="oyunlar/hafta26-makine.js?v=5"></script>
-<script src="oyunlar/hafta27-kaplumbaga.js?v=5"></script>
-<script src="oyunlar/hafta30-makas.js?v=5"></script>
-<script src="oyunlar/hafta31-kamyonet.js?v=5"></script>
-<script src="oyunlar/hafta33-yapayzeka.js?v=5"></script>
-<script src="oyunlar/hafta34-supurge.js?v=5"></script>
-<script src="oyunlar/hafta35-tavsan.js?v=5"></script>
-<script src="oyunlar/hafta37-dokun.js?v=5"></script>
-<script src="oyunlar/hafta38-kosu.js?v=5"></script>
-<script src="oyunlar/hafta39-ugur.js?v=5"></script>
-<script src="oyunlar/hafta40-yakindan.js?v=5"></script>
-<script src="oyunlar/hafta41-eksik.js?v=5"></script>
-<script src="oyunlar/hafta42-dondur.js?v=5"></script>
-<script src="oyunlar/hafta43-yarim.js?v=5"></script>
-<script src="oyunlar/hafta32-hata.js?v=5"></script>
+<script src="js/resimler.js?v=6"></script>
+<script src="js/nesneler.js?v=6"></script>
+<script src="js/rutinler.js?v=6"></script>
+<script src="js/uygulama.js?v=6"></script>
+<script src="oyunlar/hafta01-yapboz.js?v=6"></script>
+<script src="oyunlar/hafta02-sirala.js?v=6"></script>
+<script src="oyunlar/hafta03-boncuk.js?v=6"></script>
+<script src="oyunlar/hafta04-buyukluk.js?v=6"></script>
+<script src="oyunlar/hafta05-golge.js?v=6"></script>
+<script src="oyunlar/hafta06-siniflandir.js?v=6"></script>
+<script src="oyunlar/hafta07-sekiller.js?v=6"></script>
+<script src="oyunlar/hafta08-rutin.js?v=6"></script>
+<script src="oyunlar/hafta09-renk.js?v=6"></script>
+<script src="oyunlar/hafta10-dans.js?v=6"></script>
+<script src="oyunlar/hafta11-tren.js?v=6"></script>
+<script src="oyunlar/hafta12-boru.js?v=6"></script>
+<script src="oyunlar/hafta13-asci.js?v=6"></script>
+<script src="oyunlar/hafta14-koro.js?v=6"></script>
+<script src="oyunlar/hafta15-tangram.js?v=6"></script>
+<script src="oyunlar/hafta16-ari.js?v=6"></script>
+<script src="oyunlar/hafta17-tavsan.js?v=6"></script>
+<script src="oyunlar/hafta18-trafik.js?v=6"></script>
+<script src="oyunlar/hafta19-roket.js?v=6"></script>
+<script src="oyunlar/hafta20-firca.js?v=6"></script>
+<script src="oyunlar/hafta21-halka.js?v=6"></script>
+<script src="oyunlar/hafta22-ahtapot.js?v=6"></script>
+<script src="js/dongu-motoru.js?v=6"></script>
+<script src="oyunlar/hafta23-kule.js?v=6"></script>
+<script src="oyunlar/hafta24-sifre.js?v=6"></script>
+<script src="oyunlar/hafta25-hangi.js?v=6"></script>
+<script src="oyunlar/hafta26-makine.js?v=6"></script>
+<script src="oyunlar/hafta27-kaplumbaga.js?v=6"></script>
+<script src="oyunlar/hafta30-makas.js?v=6"></script>
+<script src="oyunlar/hafta31-kamyonet.js?v=6"></script>
+<script src="oyunlar/hafta33-yapayzeka.js?v=6"></script>
+<script src="oyunlar/hafta34-supurge.js?v=6"></script>
+<script src="oyunlar/hafta35-tavsan.js?v=6"></script>
+<script src="oyunlar/hafta37-dokun.js?v=6"></script>
+<script src="oyunlar/hafta38-kosu.js?v=6"></script>
+<script src="oyunlar/hafta39-ugur.js?v=6"></script>
+<script src="oyunlar/hafta40-yakindan.js?v=6"></script>
+<script src="oyunlar/hafta41-eksik.js?v=6"></script>
+<script src="oyunlar/hafta42-dondur.js?v=6"></script>
+<script src="oyunlar/hafta43-yarim.js?v=6"></script>
+<script src="oyunlar/hafta32-hata.js?v=6"></script>
 <script>Uygulama.baslat();</script>

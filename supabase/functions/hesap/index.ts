@@ -86,5 +86,30 @@ Deno.serve(async (req) => {
     return cevap({ oturum: s.session ? oturum(s.session) : null, kullanici: p.kullanici_adi });
   }
 
+  // Öğretmen araçları: çağıranın öğretmen oturumu (Authorization: Bearer) doğrulanır, yetkisi listeden okunur
+  if (g.islem === "ogretmen_sifre" || g.islem === "yonetici_giris") {
+    const jwt = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
+    const { data: c } = jwt ? await yonetici.auth.getUser(jwt) : { data: { user: null } };
+    const eposta = c.user?.email?.toLowerCase();
+    if (!eposta) return hata("yetki_yok", 401);
+    const { data: o } = await yonetici.from("ogretmenler").select("yonetici").ilike("eposta", eposta.replace(/[%_\\]/g, "\\$&")).maybeSingle();
+    if (!o || (g.islem === "yonetici_giris" && !o.yonetici)) return hata("yetki_yok", 403);
+    const p = ad && (await profilBul(ad));
+    if (!p) return hata("kullanici_yok", 404);
+
+    if (g.islem === "ogretmen_sifre") {
+      if (sifre.length < 6) return hata("sifre_kisa");
+      const { error } = await yonetici.auth.admin.updateUserById(p.id, { password: sifre });
+      if (error) return hata("sifre_kisa");
+      return cevap({ tamam: true, kullanici: p.kullanici_adi });
+    }
+    // Yönetici girişi: e-posta göndermeden tek kullanımlık bağlantı üretip hemen oturuma çevir
+    const { data: l, error: le } = await yonetici.auth.admin.generateLink({ type: "magiclink", email: p.girisEposta });
+    if (le || !l.properties?.hashed_token) return hata("giris_olmadi", 500);
+    const { data: s, error: ve } = await anonim().auth.verifyOtp({ token_hash: l.properties.hashed_token, type: "magiclink" });
+    if (ve || !s.session) return hata("giris_olmadi", 500);
+    return cevap({ oturum: oturum(s.session), kullanici: p.kullanici_adi });
+  }
+
   return hata("islem");
 });
