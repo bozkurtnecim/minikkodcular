@@ -18,6 +18,6 @@ Site sabit dosyalardan oluşur (HTML + JavaScript), GitHub Pages gibi her statik
 
 ## Öğretmen modu
 
-Anaokulu sayfasındaki "Öğretmen modu" düğmesi öğretmenin e-postasına 6 haneli bir kod gönderir (Supabase Auth).
+Anaokulu sayfasındaki "Öğretmen modu" düğmesi öğretmenin e-postasına bir giriş kodu gönderir (Supabase Auth).
 Kod doğrulanınca o cihazda bütün bölümler açılır ve oyunlarda "Cevabı göster" düğmesi çıkar.
 Supabase istemci kütüphanesi `js/vendor/` içindedir (MIT).

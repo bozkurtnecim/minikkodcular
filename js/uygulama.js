@@ -276,7 +276,7 @@
   }
 
   // ---------- Öğretmen modu ----------
-  // Öğretmen e-postasını yazar, Supabase 6 haneli kod gönderir; kod doğrulanınca bu cihazda öğretmen modu açılır:
+  // Öğretmen e-postasını yazar, Supabase bir giriş kodu gönderir; kod doğrulanınca bu cihazda öğretmen modu açılır:
   // bütün bölümler açılır ve oyunlarda "Cevabı göster" düğmesi çıkar.
   const SUPABASE_URL = "https://psmhycpnoyupyhnxhcpq.supabase.co";
   const SUPABASE_ANAHTAR = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzbWh5Y3Bub3l1cHlobnhoY3BxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM3MjM3ODEsImV4cCI6MjEwOTI5OTc4MX0.S9MzEw0RZzDGwmeo7JPipWHvFji0hSsvO5vEIJ4D6BE";
@@ -297,9 +297,9 @@
     ortu.className = "sf-ortu";
     ortu.innerHTML = `<form class="sf-kutu og-kutu" role="dialog" aria-label="Öğretmen modu" novalidate>
         <h2>Öğretmen modu</h2>
-        <p data-aciklama>E-posta adresinizi yazın, size 6 haneli bir kod gönderelim.</p>
+        <p data-aciklama>E-posta adresinizi yazın, size bir giriş kodu gönderelim.</p>
         <input class="og-girdi" type="email" name="eposta" autocomplete="email" inputmode="email" placeholder="ornek@okul.k12.tr" required>
-        <input class="og-girdi og-kod" type="text" name="kod" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••" hidden>
+        <input class="og-girdi og-kod" type="text" name="kod" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="••••••••" hidden>
         <p class="og-hata" role="alert" hidden></p>
         <div class="kt-satir"><button class="dugme" type="button" data-vazgec>Vazgeç</button><button class="dugme og-ana" type="submit">Kod gönder</button></div>
       </form>`;
@@ -315,17 +315,17 @@
       ana.disabled = true;
       const adres = eposta.value.trim();
       if (asama === "eposta" && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(adres)) { hataYaz("Geçerli bir e-posta adresi yazın."); ana.disabled = false; return; }
-      if (asama === "kod" && !/^\d{6}$/.test(kod.value.trim())) { hataYaz("6 haneli kodu yazın."); ana.disabled = false; return; }
+      if (asama === "kod" && !/^\d{6,10}$/.test(kod.value.replace(/\s/g, ""))) { hataYaz("E-postadaki kodu yazın."); ana.disabled = false; return; }
       try {
         const sb = await supabaseYukle();
         if (asama === "eposta") {
           const { error } = await sb.auth.signInWithOtp({ email: adres, options: { shouldCreateUser: true } });
           if (error) { hataYaz(/not.authorized/i.test(error.message + error.code) ? "Bu adrese şu an kod gönderilemiyor. Site yöneticisine haber verin." : /fetch|network/i.test(error.message) ? "Bağlantı kurulamadı. İnternet bağlantınızı kontrol edin." : /rate|seconds|limit/i.test(error.message) ? "Çok sık kod istendi. Biraz bekleyip yeniden deneyin." : "Kod gönderilemedi: " + error.message); return; }
           asama = "kod"; eposta.readOnly = true; kod.hidden = false; kod.focus();
-          aciklama.textContent = `${adres} adresine gelen 6 haneli kodu yazın. Gelen kutusunda yoksa istenmeyen klasörüne bakın.`;
+          aciklama.textContent = `${adres} adresine gelen kodu yazın. Gelen kutusunda yoksa istenmeyen klasörüne bakın.`;
           ana.textContent = "Doğrula";
         } else {
-          const { error } = await sb.auth.verifyOtp({ email: eposta.value.trim(), token: kod.value.trim(), type: "email" });
+          const { error } = await sb.auth.verifyOtp({ email: eposta.value.trim(), token: kod.value.replace(/\s/g, ""), type: "email" });
           if (error) { hataYaz("Kod doğru değil ya da süresi dolmuş."); return; }
           kayit.yaz("ogretmen", { eposta: eposta.value.trim(), an: Date.now() });
           ses.yerlesti();
