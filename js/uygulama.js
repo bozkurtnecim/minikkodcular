@@ -324,7 +324,7 @@
   const hesapDepo = () => { try { return hatirlaniyor() ? localStorage : sessionStorage; } catch (e) { return null; } };
   function hesapAdi() { try { const d = hesapDepo(); return d && d.getItem("mk:hesap"); } catch (e) { return null; } }
   function ilerlemeAnahtari(k) {
-    return k.startsWith("mk:") && !k.startsWith("mk:ipucu:") && !["mk:ses", "mk:ogretmen", "mk:hatirla", "mk:hesap"].includes(k);
+    return k.startsWith("mk:") && !k.startsWith("mk:ipucu:") && !["mk:ses", "mk:ogretmen", "mk:ogretmen-hatirla", "mk:hatirla", "mk:hesap"].includes(k);
   }
   function yerelIlerleme() {
     const v = {};
@@ -577,7 +577,7 @@
   // Şifre belirle: listedeki her öğretmen, şifresini unutan çocuğa yeni şifre verir.
   // Hesaba gir: yalnız yönetici; kullanıcı adıyla şifresiz o hesaba geçer (yardım için). Sunucu öğretmen oturumunu doğrular.
   function ogretmenAraclari() {
-    const bilgi = kayit.oku("ogretmen", {}) || {}, yonetici = bilgi.yetki === "yonetici";
+    const bilgi = ogretmenBilgi() || {}, yonetici = bilgi.yetki === "yonetici";
     const ortu = document.createElement("div");
     ortu.className = "sf-ortu";
     ortu.innerHTML = `<form class="sf-kutu og-kutu hs-kutu" role="dialog" aria-label="Öğretmen araçları" novalidate><button type="button" class="hs-kapat" aria-label="Kapat" data-kapat>✕</button>
@@ -640,7 +640,23 @@
   // Öğretmen e-postasını yazar, Supabase bir giriş kodu gönderir; kod doğrulanınca bu cihazda öğretmen modu açılır:
   // bütün bölümler açılır ve oyunlarda "Cevabı göster" düğmesi çıkar.
   const SUPABASE_URL = SUPABASE_URL_SABIT, SUPABASE_ANAHTAR = SUPABASE_ANAHTAR_SABIT;
-  function ogretmenMi() { return !!kayit.oku("ogretmen", null); }
+  // "Bu cihazda beni hatırla" seçilmezse öğretmen modu ve öğretmen oturumu yalnız bu sekmede (sessionStorage) tutulur:
+  // tarayıcı kapanınca öğretmen modu da kapanır, yeniden açmak için e-posta kodu gerekir.
+  const OG_HATIRLA = "mk:ogretmen-hatirla";
+  const ogHatirla = () => { try { return localStorage.getItem(OG_HATIRLA) === "1"; } catch (e) { return false; } };
+  function ogretmenBilgi() { try { const v = localStorage.getItem("mk:ogretmen") || sessionStorage.getItem("mk:ogretmen"); return v ? JSON.parse(v) : null; } catch (e) { return null; } }
+  function ogretmenMi() { return !!ogretmenBilgi(); }
+  function ogretmenYaz(bilgi, hatirla) {
+    try {
+      localStorage.removeItem("mk:ogretmen"); sessionStorage.removeItem("mk:ogretmen");
+      if (bilgi) (hatirla ? localStorage : sessionStorage).setItem("mk:ogretmen", JSON.stringify(bilgi));
+    } catch (e) {}
+  }
+  const ogDepo = {
+    getItem: (k) => { try { return sessionStorage.getItem(k) || localStorage.getItem(k); } catch (e) { return null; } },
+    setItem: (k, v) => { try { if (ogHatirla()) { localStorage.setItem(k, v); sessionStorage.removeItem(k); } else { sessionStorage.setItem(k, v); localStorage.removeItem(k); } } catch (e) {} },
+    removeItem: (k) => { try { localStorage.removeItem(k); sessionStorage.removeItem(k); } catch (e) {} },
+  };
   let supa = null;
   let kutuphane = null;
   function kutuphaneYukle() {
@@ -657,11 +673,11 @@
   }
   function supabaseYukle() {
     if (supa) return Promise.resolve(supa);
-    if (window.supabase) { supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANAHTAR, { auth: { persistSession: true, autoRefreshToken: true, storage: localStorage, storageKey: "mk-ogretmen" } }); return Promise.resolve(supa); }
+    if (window.supabase) { supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANAHTAR, { auth: { persistSession: true, autoRefreshToken: true, storage: ogDepo, storageKey: "mk-ogretmen" } }); return Promise.resolve(supa); }
     return new Promise((coz, red) => {
       const sc = document.createElement("script");
       sc.src = "js/vendor/supabase-2.45.4.js"; // @supabase/supabase-js 2.45.4 (MIT), siteyle birlikte gelir
-      sc.onload = () => { try { supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANAHTAR, { auth: { persistSession: true, autoRefreshToken: true, storage: localStorage, storageKey: "mk-ogretmen" } }); coz(supa); } catch (e) { red(e); } };
+      sc.onload = () => { try { supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANAHTAR, { auth: { persistSession: true, autoRefreshToken: true, storage: ogDepo, storageKey: "mk-ogretmen" } }); coz(supa); } catch (e) { red(e); } };
       sc.onerror = () => red(new Error("yuklenemedi"));
       document.head.appendChild(sc);
     });
@@ -680,6 +696,8 @@
         <p data-aciklama>E-posta adresinizi yazın, size bir giriş kodu gönderelim.</p>
         <input class="og-girdi" type="email" name="eposta" autocomplete="email" inputmode="email" placeholder="ornek@okul.k12.tr" required>
         <input class="og-girdi og-kod" type="text" name="kod" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="••••••••" hidden>
+        <label class="hs-hatirla" data-og-hatirla><input type="checkbox" name="hatirla"> Bu cihazda beni hatırla</label>
+        <p class="hs-not" data-og-not>Çocukların kullandığı cihazlarda işaretlemeyin: tarayıcı kapanınca öğretmen modu da kapanır.</p>
         <p class="og-hata" role="alert" hidden></p>
         <div class="kt-satir"><button class="dugme" type="button" data-vazgec>Vazgeç</button><button class="dugme og-ana" type="submit">Kod gönder</button></div>
         <button class="og-baska" type="button" data-baska hidden>Başka bir e-posta ile gir</button>
@@ -691,7 +709,7 @@
     const kapat = () => ortu.remove();
     ortu.addEventListener("click", (e) => { if (e.target === ortu || e.target.closest("[data-vazgec]")) kapat(); });
     const acildi = (adres, yetki) => {
-      kayit.yaz("ogretmen", { eposta: adres, an: Date.now(), yetki });
+      ogretmenYaz({ eposta: adres, an: Date.now(), yetki }, ogHatirla());
       ses.yerlesti();
       form.innerHTML = `<h2>Öğretmen modu açıldı</h2><p>Bu cihazda bütün bölümler açık. Oyunlarda ${IKON.cevap.replace("<svg", '<svg width="18" height="18" style="vertical-align:-3px"')} düğmesiyle cevabı görebilirsiniz.</p><button class="dugme" type="button" data-vazgec>Tamam</button>`;
       anaokuluSayfa();
@@ -699,11 +717,13 @@
     const baska = form.querySelector("[data-baska]");
     if (hatirlanan) {
       asama = "hatirla"; eposta.value = hatirlanan.eposta; eposta.readOnly = true; baska.hidden = false;
+      form.querySelector("[data-og-hatirla]").hidden = true; form.querySelector("[data-og-not]").hidden = true;
       aciklama.textContent = "Bu cihaz sizi hatırlıyor. Kod beklemeden devam edebilirsiniz.";
       ana.textContent = "Devam et"; ana.focus();
       baska.onclick = async () => {
         try { const sb = await supabaseYukle(); await sb.auth.signOut({ scope: "local" }); } catch (e) {}
         asama = "eposta"; eposta.readOnly = false; eposta.value = ""; baska.hidden = true; hataYaz("");
+        form.querySelector("[data-og-hatirla]").hidden = false; form.querySelector("[data-og-not]").hidden = false;
         aciklama.textContent = "E-posta adresinizi yazın, size bir giriş kodu gönderelim."; ana.textContent = "Kod gönder"; eposta.focus();
       };
     } else eposta.focus();
@@ -727,6 +747,8 @@
           aciklama.textContent = `${adres} adresine gelen kodu yazın. Gelen kutusunda yoksa istenmeyen klasörüne bakın.`;
           ana.textContent = "Doğrula";
         } else {
+          // Oturum, seçilen yere (kalıcı ya da yalnız bu sekme) kaydedilsin diye tercih doğrulamadan önce yazılır
+          try { if (form.hatirla.checked) localStorage.setItem(OG_HATIRLA, "1"); else localStorage.removeItem(OG_HATIRLA); } catch (e) {}
           const { error } = await sb.auth.verifyOtp({ email: eposta.value.trim(), token: kod.value.replace(/\s/g, ""), type: "email" });
           if (error) { hataYaz("Kod doğru değil ya da süresi dolmuş."); return; }
           let yetki = "ogretmen";
@@ -738,8 +760,10 @@
     };
   }
   async function ogretmenKapat() {
-    // Supabase oturumu açık kalır: bu cihazda yeniden açarken e-posta kodu gerekmez
-    try { localStorage.removeItem("mk:ogretmen"); } catch (e) {}
+    // Hatırlanan cihazda Supabase oturumu açık kalır: yeniden açarken e-posta kodu gerekmez
+    ogretmenYaz(null);
+    // Hatırlanmayan cihazda öğretmen oturumu da kapanır: yeniden açmak için e-posta kodu gerekir
+    if (!ogHatirla()) { try { const sb = await supabaseYukle(); await sb.auth.signOut({ scope: "local" }); } catch (e) {} }
     anaokuluSayfa();
   }
 
@@ -770,7 +794,7 @@
       ses.tik(); goster();
       if (yazilan.length === 4) {
         if (yazilan === kod) {
-          try { Object.keys(localStorage).filter((k) => k.startsWith("mk:") && !["mk:ses", "mk:ogretmen", "mk:hatirla", "mk:hesap"].includes(k)).forEach((k) => localStorage.removeItem(k)); } catch (e) {}
+          try { Object.keys(localStorage).filter((k) => k.startsWith("mk:") && !["mk:ses", "mk:ogretmen", "mk:ogretmen-hatirla", "mk:hatirla", "mk:hesap"].includes(k)).forEach((k) => localStorage.removeItem(k)); } catch (e) {}
           ortu.querySelector(".sf-kutu").innerHTML = `<h2>Sıfırlandı</h2><p>Bütün oyunlar ilk bölümden başlayacak.</p><button class="dugme" type="button" data-t="tamam">Tamam</button>`;
           ses.yerlesti();
         } else {
