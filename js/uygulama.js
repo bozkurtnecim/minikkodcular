@@ -627,6 +627,8 @@
       if (bilgi) (hatirla ? localStorage : sessionStorage).setItem("mk:ogretmen", JSON.stringify(bilgi));
     } catch (e) {}
   }
+  // "Hatırla" seçimi eklenmeden önce her öğretmen girişi kalıcı saklanıyordu. Seçimle yapılmamış eski kalıcı oturumları unut.
+  try { if (!ogHatirla() && localStorage.getItem("mk-ogretmen")) { localStorage.removeItem("mk-ogretmen"); localStorage.removeItem("mk:ogretmen"); } } catch (e) {}
   const ogDepo = {
     getItem: (k) => { try { return sessionStorage.getItem(k) || localStorage.getItem(k); } catch (e) { return null; } },
     setItem: (k, v) => { try { if (ogHatirla()) { localStorage.setItem(k, v); sessionStorage.removeItem(k); } else { sessionStorage.setItem(k, v); localStorage.removeItem(k); } } catch (e) {} },
@@ -675,7 +677,7 @@
         <p class="hs-not" data-og-not>Çocukların kullandığı cihazlarda işaretlemeyin: tarayıcı kapanınca öğretmen modu da kapanır.</p>
         <p class="og-hata" role="alert" hidden></p>
         <div class="kt-satir"><button class="dugme" type="button" data-vazgec>Vazgeç</button><button class="dugme og-ana" type="submit">Kod gönder</button></div>
-        <button class="og-baska" type="button" data-baska hidden>Başka bir e-posta ile gir</button>
+        <div class="og-baglar" data-hatirlanan hidden><button class="og-baska" type="button" data-unut>Bu cihazı unut</button><button class="og-baska" type="button" data-baska>Başka bir e-posta ile gir</button></div>
       </form>`;
     document.body.appendChild(ortu);
     const form = ortu.querySelector("form"), eposta = form.eposta, kod = form.kod, hata = form.querySelector(".og-hata"), ana = form.querySelector(".og-ana"), aciklama = form.querySelector("[data-aciklama]");
@@ -689,15 +691,26 @@
       form.innerHTML = `<h2>Öğretmen modu açıldı</h2><p>Bu cihazda bütün bölümler açık. Oyunlarda ${IKON.cevap.replace("<svg", '<svg width="18" height="18" style="vertical-align:-3px"')} düğmesiyle cevabı görebilirsiniz.</p><button class="dugme" type="button" data-vazgec>Tamam</button>`;
       anaokuluSayfa();
     };
-    const baska = form.querySelector("[data-baska]");
+    const baska = form.querySelector("[data-baska]"), baglar = form.querySelector("[data-hatirlanan]");
+    // Cihazın hatırladığı öğretmen oturumunu tamamen sil
+    const unut = async () => {
+      try { const sb = await supabaseYukle(); await sb.auth.signOut({ scope: "local" }); } catch (e) {}
+      try { localStorage.removeItem(OG_HATIRLA); ogDepo.removeItem("mk-ogretmen"); } catch (e) {}
+      ogretmenYaz(null);
+    };
     if (hatirlanan) {
-      asama = "hatirla"; eposta.value = hatirlanan.eposta; eposta.readOnly = true; baska.hidden = false;
+      asama = "hatirla"; eposta.value = hatirlanan.eposta; eposta.readOnly = true; baglar.hidden = false;
+      form.querySelector("[data-unut]").onclick = async () => {
+        await unut();
+        form.innerHTML = `<h2>Cihaz unutuldu</h2><p>Bu cihaz artık sizi hatırlamıyor. Öğretmen modunu açmak için yeniden e-posta kodu gerekir.</p><button class="dugme" type="button" data-vazgec>Tamam</button>`;
+        anaokuluSayfa();
+      };
       form.querySelector("[data-og-hatirla]").hidden = true; form.querySelector("[data-og-not]").hidden = true;
       aciklama.textContent = "Bu cihaz sizi hatırlıyor. Kod beklemeden devam edebilirsiniz.";
       ana.textContent = "Devam et"; ana.focus();
       baska.onclick = async () => {
-        try { const sb = await supabaseYukle(); await sb.auth.signOut({ scope: "local" }); } catch (e) {}
-        asama = "eposta"; eposta.readOnly = false; eposta.value = ""; baska.hidden = true; hataYaz("");
+        await unut();
+        asama = "eposta"; eposta.readOnly = false; eposta.value = ""; baglar.hidden = true; hataYaz("");
         form.querySelector("[data-og-hatirla]").hidden = false; form.querySelector("[data-og-not]").hidden = false;
         aciklama.textContent = "E-posta adresinizi yazın, size bir giriş kodu gönderelim."; ana.textContent = "Kod gönder"; eposta.focus();
       };
