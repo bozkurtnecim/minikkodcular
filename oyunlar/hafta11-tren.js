@@ -381,6 +381,9 @@
     d.trenEl.classList.remove("salla");
     d.harita.querySelectorAll(".kirik").forEach((x) => x.classList.remove("kirik"));
     treniKoy(bas.r, bas.c, bas.agiz, false);
+    // Yanlışta konan raylar kutuya döner, çocuk baştan kurar
+    d.yerlesen = {}; d.kutu = { ...d.cozum.gereken }; d.secili = null;
+    haritaCiz(); kutuCiz(); treniKoy(bas.r, bas.c, bas.agiz, false);
     d.calisiyor = false; d.dugme.disabled = false;
   }
 

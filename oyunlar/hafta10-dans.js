@@ -319,6 +319,8 @@
     await bekle(1300);
     if (!d || benim !== d.uid) return;
     yerler.forEach((y) => y.classList.remove("yanlis", "dogru"));
+    // Yanlışta program silinir, çocuk baştan kurar
+    d.program = b.dans.map(() => null);
     d.mesgul = false; d.izleDugme.disabled = false; seritCiz();
   }
 

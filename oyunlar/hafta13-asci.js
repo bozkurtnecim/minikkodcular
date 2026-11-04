@@ -292,8 +292,9 @@
     await bekle(1300);
     if (!d || benim !== d.uid) return;
     d.hayvan.classList.remove("uzgun");
-    katlar.forEach((k) => k.classList.remove("dogru", "yanlis"));
-    d.mesgul = false; d.zil.disabled = !d.yigin.length;
+    // Yanlışta tabak boşalır, çocuk baştan dizer
+    d.yigin = []; yiginCiz(false);
+    d.mesgul = false; d.zil.disabled = true;
   }
 
   function bitir() {

@@ -143,6 +143,7 @@
         d.borular[`${h.r},${h.c}`] = { temel: turler[(Math.random() * turler.length) | 0], don: (Math.random() * 4) | 0 };
       }
     });
+    d.borularBas = JSON.parse(JSON.stringify(d.borular));
     const ciceksay = d.cozum.hucreler.filter((h) => h.ch === "C" || h.ch === "D").length;
     d.sahne.innerHTML = `
       <h2 class="br-baslik">${ciceksay > 1 ? "Borulara dokun, iki çiçeğe de su götür" : "Borulara dokunarak çevir, suyu çiçeğe götür"}</h2>
@@ -241,7 +242,9 @@
     await bekle(1900);
     if (!d || benim !== d.uid) return;
     d.harita.querySelectorAll(".dolu, .sizinti").forEach((x) => x.classList.remove("dolu", "sizinti"));
-    cicekler.forEach((h) => kareCiz(h, false));
+    // Yanlışta çevrilen borular başlangıçtaki hâline döner, çocuk baştan dener
+    d.borular = JSON.parse(JSON.stringify(d.borularBas));
+    d.cozum.hucreler.forEach((h) => kareCiz(h, false));
     d.baslik.textContent = d.baslikYazi;
     d.akiyor = false; d.dugme.disabled = false;
   }

@@ -211,9 +211,11 @@
       d.api.ses.hata();
       await bekle(500);
       if (!d || benim !== d.uid) return;
+      // Yanlışta bütün nesneler yere döner, çocuk baştan dizer
       yuvalar.forEach((y) => {
         const nesne = y.querySelector(".bs-nesne");
-        if (nesne && !y.classList.contains("dogru")) { nesne.classList.remove("salla"); d.zemin.appendChild(nesne); }
+        y.classList.remove("dogru");
+        if (nesne) { nesne.classList.remove("salla"); d.zemin.appendChild(nesne); }
       });
       d.kontrol = false;
       return;

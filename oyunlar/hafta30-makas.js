@@ -254,6 +254,8 @@
     d.api.ses.hata();
     await bekle(1700);
     if (!d || benim !== d.uid) return;
+    // Yanlışta makaslar başlangıç konumuna döner, çocuk baştan ayarlar
+    d.makas = new Map(b.bas);
     d.calisiyor = false; d.dugme.disabled = false; ciz();
   }
   function bitir() {

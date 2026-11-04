@@ -226,9 +226,11 @@
       d.api.ses.hata();
       await bekle(500);
       if (!d || benim !== d.uid) return;
+      // Yanlışta bütün kartlar desteye döner, çocuk baştan dizer
       yuvalar.forEach((y) => {
         const kart = y.querySelector(".gr-kart");
-        if (kart && !y.classList.contains("dogru")) { kart.classList.remove("salla"); d.deste.appendChild(kart); if (BOLUMLER[d.idx].tur === "eksik") y.textContent = "?"; }
+        y.classList.remove("dogru");
+        if (kart) { kart.classList.remove("salla"); d.deste.appendChild(kart); if (BOLUMLER[d.idx].tur === "eksik") y.textContent = "?"; }
       });
       d.kontrol = false;
       return;

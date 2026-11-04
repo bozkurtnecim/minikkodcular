@@ -301,6 +301,8 @@
     d.api.ses.hata();
     await bekle(1500);
     if (!d || benim !== d.uid) return;
+    // Yanlışta konan kartlar silinir, çocuk baştan kurar
+    Object.keys(d.prog).forEach((s) => (d.prog[s] = []));
     d.calisiyor = false; programCiz();
   }
   function bitir() {

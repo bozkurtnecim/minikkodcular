@@ -567,8 +567,8 @@
         await bekle(550);
         if (!d || benim !== d.uid) return;
         kart.classList.remove("salla");
-        // Hatalı adımdan sonraki kartlar desteye döner
-        yuvalar.slice(j).forEach((yy) => { const k = yy.querySelector(".sr-kart"); if (k) d.deste.appendChild(k); });
+        // Yanlışta bütün kartlar desteye döner, çocuk baştan dizer
+        yuvalar.forEach((yy) => { yy.classList.remove("dogru"); const k = yy.querySelector(".sr-kart"); if (k) d.deste.appendChild(k); });
         d.calisiyor = false; durumGuncelle();
         return;
       }
