@@ -94,6 +94,13 @@ Deno.serve(async (req) => {
     if (!eposta) return hata("yetki_yok", 401);
     const { data: o } = await yonetici.from("ogretmenler").select("yonetici").ilike("eposta", eposta.replace(/[%_\\]/g, "\\$&")).maybeSingle();
     if (!o || (g.islem === "yonetici_giris" && !o.yonetici)) return hata("yetki_yok", 403);
+    // Hesaba gir: ayrıca yönetici işaretli bir hesapla giriş yapılmış olmalı (gövdede o hesabın oturum anahtarı)
+    if (g.islem === "yonetici_giris") {
+      const ht = String(g.hesap_token || "");
+      const { data: h } = ht ? await yonetici.auth.getUser(ht) : { data: { user: null } };
+      const { data: hp } = h.user ? await yonetici.from("profiller").select("yonetici").eq("id", h.user.id).maybeSingle() : { data: null };
+      if (!hp?.yonetici) return hata("hesap_yetki_yok", 403);
+    }
     const p = ad && (await profilBul(ad));
     if (!p) return hata("kullanici_yok", 404);
 
