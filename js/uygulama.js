@@ -354,11 +354,15 @@
   async function cikisYap() {
     // Yardım girişinde oturum yalnız bu cihazda kapanır (çocuğun kendi oturumları sürer)
     try { const sb = await hesapSb(); await hesapGonder(); await sb.auth.signOut(yardimda() ? { scope: "local" } : undefined); } catch (e) {}
-    try { if (yardimda()) { sessionStorage.removeItem("mk:yardim"); localStorage.setItem("mk:hatirla", "1"); } } catch (e) {}
+    const yardimdi = yardimda();
+    let onceki = null;
+    try { if (yardimdi) { onceki = JSON.parse(sessionStorage.getItem("mk:onceki") || "null"); sessionStorage.removeItem("mk:yardim"); sessionStorage.removeItem("mk:onceki"); localStorage.setItem("mk:hatirla", "1"); } } catch (e) {}
     try { localStorage.removeItem("mk:hesap"); sessionStorage.removeItem("mk:hesap"); } catch (e) {}
     // Paylaşılan cihazda sonraki çocuk öncekinin ilerlemesini görmesin
     try { Object.keys(localStorage).filter(ilerlemeAnahtari).forEach((k) => localStorage.removeItem(k)); } catch (e) {}
     hesapIstemci = null;
+    // Yardım girişinden çıkınca, girmeden önceki hesaba geri dön
+    if (onceki && onceki.oturum) { try { await oturumAc(onceki, onceki.hatirla); } catch (e) {} }
     yonlendir();
   }
   function hesapDugmesi() {
@@ -565,6 +569,15 @@
         let cvp = {}; try { cvp = await y.json(); } catch (er) {}
         if (cvp.hata) return hataYaz({ yetki_yok: "Bu işlem için yetkiniz yok.", kullanici_yok: "Bu kullanıcı adı bulunamadı." }[cvp.hata] || HESAP_HATA[cvp.hata] || "Bir sorun oldu, yeniden deneyin.");
         if (sekme === "sifre") { form.sifre.value = ""; return hataYaz(`${cvp.kullanici} için yeni şifre kaydedildi.`, true); }
+        // Yardıma girmeden önceki hesabı sakla: çıkınca ona dönülür
+        try {
+          if (hesapAdi() && !yardimda()) {
+            const eski = await hesapSb(), { data: h } = await eski.auth.getSession();
+            // Eski istemci arka planda anahtarı yenilemesin, saklanan oturum geçerli kalsın
+            try { eski.auth.stopAutoRefresh(); } catch (e) {}
+            if (h.session) sessionStorage.setItem("mk:onceki", JSON.stringify({ kullanici: hesapAdi(), hatirla: hatirlaniyor(), oturum: { access_token: h.session.access_token, refresh_token: h.session.refresh_token } }));
+          }
+        } catch (e) {}
         await oturumAc(cvp, false, true);
         ses.yerlesti(); ortu.remove(); yonlendir();
       } catch (err) { hataYaz("Bağlantı kurulamadı. İnternet bağlantınızı kontrol edin."); }
