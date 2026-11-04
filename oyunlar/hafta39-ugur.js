@@ -69,12 +69,13 @@
     [1, 5, 5, "yals", 6, 6, 1], [1, 5, 5, "yals", 6, 7, 1], [1, 5, 5, "yals", 6, 7, 1], [1, 5, 5, "yals", 7, 7, 1], [1, 5, 5, "yals", 6, 7, 2], [1, 5, 5, "yals", 7, 7, 2],
     [1, 5, 5, "yals", 7, 8, 1], [1, 5, 5, "yals", 7, 8, 2], [1, 5, 5, "yals", 7, 8, 2], [1, 5, 5, "yals", 8, 8, 2], [1, 5, 5, "yals", 8, 8, 2], [1, 5, 5, "yals", 8, 8, 2],
   ];
-  const BOLUMLER = T.map((t, i) => ({ ...uret(t), grup: Uygulama.seviye(i), ek: i < 12 ? 1 : 2 }));
+  const BOLUMLER = T.map((t, i) => ({ ...uret(t), grup: Uygulama.seviye(i) }));
 
   // ---------- Oyun ----------
   const stil = `
   .ub { position: absolute; inset: 0; display: flex; flex-direction: column; background: linear-gradient(#f0f9e8, #e1f2d6); }
   .ub-sahne { --k: 90px; --p: 64px; position: relative; flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; gap: 24px; padding: 8px 16px 16px; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
+  .ub-sahne.dikey .ub-calistir { padding: 0 18px; min-height: 56px; }
   .ub-sahne.dikey { flex-direction: column; gap: 12px; justify-content: safe center; overflow-y: auto; }
   .ub-cayir { position: relative; display: grid; grid-template-columns: repeat(var(--C), var(--k)); grid-auto-rows: var(--k); padding: 10px; border-radius: 24px; background: #8fd36a; box-shadow: 0 8px 0 rgba(29,40,70,.12); flex: none; }
   .ub-kare { position: relative; }
@@ -93,8 +94,8 @@
   .ub-bocek.uzgun svg { animation: ub-salla .5s 2; }
   @keyframes ub-salla { 20%, 60% { transform: translateX(-7px); } 40%, 80% { transform: translateX(7px); } }
   .ub-yan { display: grid; justify-items: center; gap: 14px; }
-  .ub-program { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; padding: 12px; border-radius: 22px; background: var(--kagit); box-shadow: 0 6px 0 rgba(29,40,70,.1); max-width: min(100%, 520px); box-sizing: border-box; }
-  .ub-yer { width: var(--p); height: var(--p); border-radius: 14px; border: 3px dashed var(--cizgi); box-sizing: border-box; background: var(--zemin); cursor: pointer; }
+  .ub-program { display: flex; flex-wrap: nowrap; justify-content: center; gap: 8px; padding: 12px; border-radius: 22px; background: var(--kagit); box-shadow: 0 6px 0 rgba(29,40,70,.1); box-sizing: border-box; }
+  .ub-yer { flex: none; width: var(--y, var(--p)); height: var(--y, var(--p)); border-radius: 14px; border: 3px dashed var(--cizgi); box-sizing: border-box; background: var(--zemin); cursor: pointer; }
   .ub-yer.dolu { border: 0; background: none; }
   .ub-yer svg { width: 100%; height: 100%; display: block; }
   .ub-yer.simdi { outline: 5px solid var(--sari); outline-offset: 2px; border-radius: 16px; }
@@ -145,7 +146,7 @@
     d.ilerleme.son = i; d.api.kayit.yaz(KAYIT, d.ilerleme);
     navCiz();
     d.program = []; d.yer = [...b.bas]; d.aci = ACI[b.cozum[0]]; d.alinan = new Set();
-    d.yerSayi = b.plan ? Math.min(12, b.cozum.length + b.ek) : 0;
+    d.yerSayi = b.plan ? b.cozum.length : 0;
     const kartlar = ["y", "l", "a", "s"].filter((k) => b.izin.includes(k));
     d.sahne.classList.toggle("dogrudan", !b.plan);
     d.sahne.innerHTML = `
@@ -180,11 +181,17 @@
     if (W < 50 || H < 50) return;
     const dikey = W < H * 1.1;
     d.sahne.classList.toggle("dikey", dikey);
-    const p = Math.max(52, Math.min(80, Math.floor((dikey ? W - 30 : W * 0.4) / Math.min(Math.max(d.yerSayi, 4), 6) - 10)));
-    const satir = d.yerSayi ? Math.ceil(d.yerSayi / Math.max(1, Math.floor(((dikey ? W : W * 0.4) - 24) / (p + 8)))) : 0;
-    const k = dikey ? Math.min((W - 24) / b.C, (H - satir * (p + 8) - 2 * p - 120) / b.R, 120) : Math.min((W * 0.55 - 24) / b.C, (H - 24) / b.R, 130);
+    const genis = dikey ? W : W * 0.42;
+    const p = Math.max(52, Math.min(dikey ? 64 : 80, Math.floor((genis - 30) / 4 - 10)));
+    // Plan kutucukları tek sırada: sığmazsa küçülür
+    const y = d.yerSayi ? Math.max(30, Math.min(p, Math.floor((genis - 24 + 8) / d.yerSayi - 8))) : 0;
+    const satir = d.yerSayi ? 1 : 0;
+    d.sahne.style.setProperty("--y", y + "px");
+    const k = dikey ? Math.min((W - 24) / b.C, (H - satir * (y + 32) - 2 * p - 110) / b.R, 120) : Math.min((W * 0.55 - 24) / b.C, (H - 24) / b.R, 130);
     d.k = Math.max(44, Math.floor(k));
     d.sahne.style.setProperty("--k", d.k + "px"); d.sahne.style.setProperty("--p", p + "px");
+    // Hâlâ sığmıyorsa çayırı küçült
+    for (let n = 0; n < 30 && d.k > 40 && d.sahne.scrollHeight > d.sahne.clientHeight + 1; n++) { d.k -= 4; d.sahne.style.setProperty("--k", d.k + "px"); }
     bocekKoy(...d.yer, d.aci, false);
   }
   function bocekKoy(r, c, aci, anim = true) {
