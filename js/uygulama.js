@@ -1,5 +1,30 @@
 /* Minik Kodcular: ana sayfa, yönlendirme, tam ekran, ses ve kayıt. */
 (function () {
+  // ---------- Sürüm kontrolü ----------
+  // Tarayıcı eski sayfayı hafızada tutabilir. Açılışta (ve sekmeye dönüldüğünde) surum.json önbelleksiz okunur;
+  // daha yeni bir sürüm varsa sayfa bir kez yeniden yüklenir. Sürüm, index.html'deki ?v= numarasıdır.
+  const SURUM = +((/[?&]v=(\d+)/.exec((document.currentScript && document.currentScript.src) || "") || [])[1] || 0);
+  (function surumKontrol() {
+    try {
+      // Yenileme için eklenen ?s= ekini adres çubuğundan sil
+      if (/[?&]s=\d+/.test(location.search)) history.replaceState(null, "", location.pathname + location.search.replace(/[?&]s=\d+/, "").replace(/^&/, "?") + location.hash);
+    } catch (e) {}
+    let son = 0;
+    const bak = () => {
+      if (!SURUM || location.protocol === "file:" || Date.now() - son < 60000) return;
+      son = Date.now();
+      fetch("surum.json?t=" + son, { cache: "no-store" }).then((y) => y.json()).then((j) => {
+        const yeni = +j.surum || 0;
+        if (yeni <= SURUM) return;
+        // Aynı sürüm için yalnız bir kez dene: döngüye girmesin
+        try { if (sessionStorage.getItem("mk:surum-denendi") === String(yeni)) return; sessionStorage.setItem("mk:surum-denendi", String(yeni)); } catch (e) {}
+        location.replace(location.pathname + "?s=" + yeni + location.hash);
+      }).catch(() => {});
+    };
+    bak();
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") bak(); });
+  })();
+
   // Sarmal program: 6 kavram, 6 tur, 36 hafta. Kavramlar her turda
   // biraz daha zor hâliyle tekrar gelir. Oyun dosyası oyunlar/haftaXX-*.js içinde
   // Uygulama.oyunEkle(no, {...}) ile kaydolunca kartı açılır.
