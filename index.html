@@ -1,5 +1,12 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#cfeaff">
+<meta name="description" content="Minik Kodcular: okul öncesi çocuklar için okuma gerektirmeyen kodlama ve düşünme oyunları.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect x='2' y='2' width='17' height='17' rx='5' fill='%23ff5a4e'/%3E%3Crect x='21' y='2' width='17' height='17' rx='5' fill='%23ffc23a'/%3E%3Crect x='2' y='21' width='17' height='17' rx='5' fill='%232f86e0'/%3E%3Crect x='21' y='21' width='17' height='17' rx='5' fill='%232fb36a'/%3E%3C/svg%3E">
 <title>Minik Kodcular</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@500;700;800&display=swap">
@@ -222,6 +229,60 @@ body.oyunda { overflow: hidden; }
 @keyframes kt-gel { from { transform: scale(.4); opacity: 0; } }
 @keyframes kt-nabiz { 50% { transform: scale(1.08); } }
 
+/* ---------- Çocuk dostu süsler (oyun ekranları hariç) ---------- */
+html { background: linear-gradient(180deg, #cfeaff 0%, #e4f3ff 38%, #f3faff 100%) fixed; }
+body:not(.oyunda) { background: transparent; }
+body:not(.oyunda)::after {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: .35;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320' viewBox='0 0 320 320'%3E%3Cg fill='none' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M40 30 l7 14 15 2 -11 10 3 15 -14 -7 -14 7 3 -15 -11 -10 15 -2z' stroke='%23ffc23a'/%3E%3Ccircle cx='250' cy='60' r='13' stroke='%23ff7ab8'/%3E%3Cpath d='M150 140 l16 28 h-32z' stroke='%232fb36a'/%3E%3Crect x='252' y='200' width='26' height='26' rx='6' stroke='%232f86e0' transform='rotate(14 265 213)'/%3E%3Cpath d='M60 230 q10 -14 20 0 t20 0' stroke='%238a5cf0'/%3E%3Ccircle cx='190' cy='280' r='5' fill='%23ff5a4e' stroke='none'/%3E%3Ccircle cx='110' cy='90' r='4' fill='%232f86e0' stroke='none'/%3E%3Ccircle cx='290' cy='130' r='4' fill='%23ffc23a' stroke='none'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(ellipse 160px 60px at 12% 14%, #fff 60%, transparent 62%),
+    radial-gradient(ellipse 120px 46px at 18% 11%, #fff 60%, transparent 62%),
+    radial-gradient(ellipse 180px 64px at 86% 22%, #fff 60%, transparent 62%),
+    radial-gradient(ellipse 120px 46px at 80% 19%, #fff 60%, transparent 62%);
+  background-size: 320px 320px, auto, auto, auto, auto;
+}
+body:not(.oyunda) .ust { background: transparent; }
+body:not(.oyunda)::before { background: transparent; }
+.ana::after { content: ""; display: block; height: 110px; margin: 0 -16px -48px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 110' preserveAspectRatio='none'%3E%3Cpath d='M0 70 Q150 20 300 60 T600 55 T900 50 T1200 60 V110 H0z' fill='%23a6e08a'/%3E%3Cpath d='M0 90 Q200 55 420 85 T820 80 T1200 85 V110 H0z' fill='%237cc95a'/%3E%3Cg fill='%23ff7ab8'%3E%3Ccircle cx='140' cy='82' r='6'/%3E%3Ccircle cx='520' cy='76' r='6'/%3E%3Ccircle cx='980' cy='74' r='6'/%3E%3C/g%3E%3Cg fill='%23ffc23a'%3E%3Ccircle cx='330' cy='88' r='5'/%3E%3Ccircle cx='760' cy='86' r='5'/%3E%3Ccircle cx='1110' cy='84' r='5'/%3E%3C/g%3E%3C/svg%3E") bottom / 100% 100% no-repeat; }
+.maskot { width: 120px; height: 120px; margin: 0 auto 6px; animation: maskot-salla 3.2s ease-in-out infinite; transform-origin: 50% 100%; }
+.maskot svg { width: 100%; height: 100%; display: block; }
+@keyframes maskot-salla { 0%, 100% { transform: rotate(-4deg) translateY(0); } 50% { transform: rotate(4deg) translateY(-6px); } }
+.giris h1 span { background: linear-gradient(transparent 62%, #ffe08a 62%); padding: 0 4px; border-radius: 4px; }
+.kademe, .kategori { border-top-width: 0 !important; box-shadow: 0 8px 0 color-mix(in srgb, var(--renk) 45%, #c7d3e3); border: 4px solid color-mix(in srgb, var(--renk) 30%, #fff) !important; transition: transform .2s cubic-bezier(.3,1.6,.5,1); }
+.kademe:nth-child(even), .kategori:nth-child(even) { transform: rotate(.8deg); }
+.kademe:nth-child(odd), .kategori:nth-child(odd) { transform: rotate(-.8deg); }
+.kademe:hover, .kategori:hover { transform: translateY(-6px) rotate(0) scale(1.03); }
+.kademe:active, .kategori:active { transform: scale(.97); }
+.kademe:hover .resim, .kategori:hover .resim { animation: resim-zipla .6s ease; }
+@keyframes resim-zipla { 40% { transform: translateY(-10px) rotate(-4deg); } 70% { transform: translateY(0) rotate(2deg); } }
+.kategori .ad, .kademe .ad { color: color-mix(in srgb, var(--renk) 70%, #1d2846); }
+.kart.acik { border: 3px solid color-mix(in srgb, var(--renk) 25%, #fff); box-shadow: 0 6px 0 color-mix(in srgb, var(--renk) 35%, #c7d3e3); }
+.kart.acik:active { transform: scale(.97); }
+.ogretmen-alani { display: grid; gap: 14px; justify-items: center; padding: 18px; border-radius: 24px; background: rgba(255,255,255,.7); border: 3px dashed var(--cizgi); }
+.ogretmen-alani h2 { margin: 0; font-family: var(--f-baslik); font-size: 1.15rem; color: var(--murekkep-2); }
+.ogretmen-alani .not { text-align: center; }
+.ogretmen-alani .sifirla-yer { margin: 0; }
+/* Telefon */
+@media (max-width: 640px) {
+  .ust { gap: 8px; }
+  .logo { font-size: 1.2rem; gap: 8px; }
+  .logo-isaret { width: 34px; height: 34px; }
+  .ana { gap: 24px; }
+  .giris { padding-top: 0; }
+  .maskot { width: 92px; height: 92px; }
+  .ana .kademeler { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .kademe { padding: 16px 10px 14px; }
+  .kademe .resim { width: 96px; height: 80px; }
+  .kademe .ad { font-size: 1.35rem; }
+  .ana .kategoriler { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .kategori { padding: 14px 10px; }
+  .kategori .resim { width: 96px; height: 80px; }
+  .kategori .ad { font-size: 1.15rem; }
+  .kategori .alt { font-size: .82rem; }
+  .ogretmen-alani { padding: 14px 12px; }
+}
+@media (max-width: 340px) { .ana .kademeler, .ana .kategoriler { grid-template-columns: 1fr; } }
+
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
 /* Nasıl oynanır: el gösterimi */
 .ip-ortu { position: fixed; inset: 0; z-index: 90; background: rgba(20,30,60,.12); cursor: pointer; }
@@ -266,52 +327,55 @@ body.oyunda { overflow: hidden; }
 .kategori-baslik .kademe-etiket { background: var(--renk); }
 @media (max-width: 520px) { .kategori-baslik .resim { width: 80px; height: 66px; } }
 </style>
-
+</head>
+<body>
 <div id="uygulama"></div>
 
-<script src="js/resimler.js?v=8"></script>
-<script src="js/nesneler.js?v=8"></script>
-<script src="js/rutinler.js?v=8"></script>
-<script src="js/uygulama.js?v=8"></script>
-<script src="oyunlar/hafta01-yapboz.js?v=8"></script>
-<script src="oyunlar/hafta02-sirala.js?v=8"></script>
-<script src="oyunlar/hafta03-boncuk.js?v=8"></script>
-<script src="oyunlar/hafta04-buyukluk.js?v=8"></script>
-<script src="oyunlar/hafta05-golge.js?v=8"></script>
-<script src="oyunlar/hafta06-siniflandir.js?v=8"></script>
-<script src="oyunlar/hafta07-sekiller.js?v=8"></script>
-<script src="oyunlar/hafta08-rutin.js?v=8"></script>
-<script src="oyunlar/hafta09-renk.js?v=8"></script>
-<script src="oyunlar/hafta10-dans.js?v=8"></script>
-<script src="oyunlar/hafta11-tren.js?v=8"></script>
-<script src="oyunlar/hafta12-boru.js?v=8"></script>
-<script src="oyunlar/hafta13-asci.js?v=8"></script>
-<script src="oyunlar/hafta14-koro.js?v=8"></script>
-<script src="oyunlar/hafta15-tangram.js?v=8"></script>
-<script src="oyunlar/hafta16-ari.js?v=8"></script>
-<script src="oyunlar/hafta17-tavsan.js?v=8"></script>
-<script src="oyunlar/hafta18-trafik.js?v=8"></script>
-<script src="oyunlar/hafta19-roket.js?v=8"></script>
-<script src="oyunlar/hafta20-firca.js?v=8"></script>
-<script src="oyunlar/hafta21-halka.js?v=8"></script>
-<script src="oyunlar/hafta22-ahtapot.js?v=8"></script>
-<script src="js/dongu-motoru.js?v=8"></script>
-<script src="oyunlar/hafta23-kule.js?v=8"></script>
-<script src="oyunlar/hafta24-sifre.js?v=8"></script>
-<script src="oyunlar/hafta25-hangi.js?v=8"></script>
-<script src="oyunlar/hafta26-makine.js?v=8"></script>
-<script src="oyunlar/hafta27-kaplumbaga.js?v=8"></script>
-<script src="oyunlar/hafta30-makas.js?v=8"></script>
-<script src="oyunlar/hafta31-kamyonet.js?v=8"></script>
-<script src="oyunlar/hafta33-yapayzeka.js?v=8"></script>
-<script src="oyunlar/hafta34-supurge.js?v=8"></script>
-<script src="oyunlar/hafta35-tavsan.js?v=8"></script>
-<script src="oyunlar/hafta37-dokun.js?v=8"></script>
-<script src="oyunlar/hafta38-kosu.js?v=8"></script>
-<script src="oyunlar/hafta39-ugur.js?v=8"></script>
-<script src="oyunlar/hafta40-yakindan.js?v=8"></script>
-<script src="oyunlar/hafta41-eksik.js?v=8"></script>
-<script src="oyunlar/hafta42-dondur.js?v=8"></script>
-<script src="oyunlar/hafta43-yarim.js?v=8"></script>
-<script src="oyunlar/hafta32-hata.js?v=8"></script>
+<script src="js/resimler.js?v=9"></script>
+<script src="js/nesneler.js?v=9"></script>
+<script src="js/rutinler.js?v=9"></script>
+<script src="js/uygulama.js?v=9"></script>
+<script src="oyunlar/hafta01-yapboz.js?v=9"></script>
+<script src="oyunlar/hafta02-sirala.js?v=9"></script>
+<script src="oyunlar/hafta03-boncuk.js?v=9"></script>
+<script src="oyunlar/hafta04-buyukluk.js?v=9"></script>
+<script src="oyunlar/hafta05-golge.js?v=9"></script>
+<script src="oyunlar/hafta06-siniflandir.js?v=9"></script>
+<script src="oyunlar/hafta07-sekiller.js?v=9"></script>
+<script src="oyunlar/hafta08-rutin.js?v=9"></script>
+<script src="oyunlar/hafta09-renk.js?v=9"></script>
+<script src="oyunlar/hafta10-dans.js?v=9"></script>
+<script src="oyunlar/hafta11-tren.js?v=9"></script>
+<script src="oyunlar/hafta12-boru.js?v=9"></script>
+<script src="oyunlar/hafta13-asci.js?v=9"></script>
+<script src="oyunlar/hafta14-koro.js?v=9"></script>
+<script src="oyunlar/hafta15-tangram.js?v=9"></script>
+<script src="oyunlar/hafta16-ari.js?v=9"></script>
+<script src="oyunlar/hafta17-tavsan.js?v=9"></script>
+<script src="oyunlar/hafta18-trafik.js?v=9"></script>
+<script src="oyunlar/hafta19-roket.js?v=9"></script>
+<script src="oyunlar/hafta20-firca.js?v=9"></script>
+<script src="oyunlar/hafta21-halka.js?v=9"></script>
+<script src="oyunlar/hafta22-ahtapot.js?v=9"></script>
+<script src="js/dongu-motoru.js?v=9"></script>
+<script src="oyunlar/hafta23-kule.js?v=9"></script>
+<script src="oyunlar/hafta24-sifre.js?v=9"></script>
+<script src="oyunlar/hafta25-hangi.js?v=9"></script>
+<script src="oyunlar/hafta26-makine.js?v=9"></script>
+<script src="oyunlar/hafta27-kaplumbaga.js?v=9"></script>
+<script src="oyunlar/hafta30-makas.js?v=9"></script>
+<script src="oyunlar/hafta31-kamyonet.js?v=9"></script>
+<script src="oyunlar/hafta33-yapayzeka.js?v=9"></script>
+<script src="oyunlar/hafta34-supurge.js?v=9"></script>
+<script src="oyunlar/hafta35-tavsan.js?v=9"></script>
+<script src="oyunlar/hafta37-dokun.js?v=9"></script>
+<script src="oyunlar/hafta38-kosu.js?v=9"></script>
+<script src="oyunlar/hafta39-ugur.js?v=9"></script>
+<script src="oyunlar/hafta40-yakindan.js?v=9"></script>
+<script src="oyunlar/hafta41-eksik.js?v=9"></script>
+<script src="oyunlar/hafta42-dondur.js?v=9"></script>
+<script src="oyunlar/hafta43-yarim.js?v=9"></script>
+<script src="oyunlar/hafta32-hata.js?v=9"></script>
 <script>Uygulama.baslat();</script>
+</body>
+</html>

@@ -193,6 +193,7 @@
       <main class="ana">
         <section class="giris tek">
           <div>
+            <div class="maskot">${maskotSvg}</div>
             <h1>Oyunlarla <span>kodlamaya ilk adım</span></h1>
             <p>Okuma gerektirmeyen, kolaydan zora ilerleyen kodlama oyunları. Başlamak için kademeni seç.</p>
           </div>
@@ -255,6 +256,9 @@
         <button class="dugme" data-tam-ekran type="button"></button>
       </header>`;
 
+  // Ana sayfaların maskotu: el sallayan robot
+  const maskotSvg = `<svg viewBox="0 0 120 120" aria-hidden="true"><ellipse cx="60" cy="112" rx="34" ry="6" fill="rgba(29,40,70,.12)"/><path d="M60 22 V10" stroke="#5d6878" stroke-width="5" stroke-linecap="round"/><circle cx="60" cy="8" r="6" fill="#ffc23a"/><rect x="26" y="22" width="68" height="52" rx="18" fill="#8a5cf0"/><rect x="34" y="30" width="52" height="34" rx="12" fill="#efe8ff"/><circle cx="48" cy="46" r="6" fill="#1d2846"/><circle cx="72" cy="46" r="6" fill="#1d2846"/><circle cx="50" cy="44" r="2" fill="#fff"/><circle cx="74" cy="44" r="2" fill="#fff"/><path d="M50 56 q10 7 20 0" stroke="#1d2846" stroke-width="3.5" fill="none" stroke-linecap="round"/><circle cx="40" cy="55" r="4" fill="#ff9fb5" opacity=".7"/><circle cx="80" cy="55" r="4" fill="#ff9fb5" opacity=".7"/><rect x="38" y="76" width="44" height="30" rx="12" fill="#2f86e0"/><rect x="52" y="84" width="16" height="12" rx="4" fill="#ffc23a"/><path d="M38 84 Q22 82 18 66" stroke="#2f86e0" stroke-width="9" fill="none" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" values="0 38 84;-18 38 84;0 38 84" dur="1.2s" repeatCount="indefinite"/></path><circle cx="18" cy="64" r="7" fill="#ffc23a"/><path d="M82 84 Q96 88 98 100" stroke="#2f86e0" stroke-width="9" fill="none" stroke-linecap="round"/><circle cx="98" cy="102" r="7" fill="#ffc23a"/></svg>`;
+
   function anaokuluSayfa() {
     document.body.classList.remove("oyunda");
     document.title = "Anaokulu · Minik Kodcular";
@@ -262,6 +266,7 @@
       <main class="ana">
         <section class="giris tek">
           <div>
+            <div class="maskot">${maskotSvg}</div>
             <div class="kademe-etiket">Anaokulu · 4–6 yaş</div>
             <h1>Bir <span>oyun türü</span> seç</h1>
             <p>Okuma gerektirmeyen oyunlar. Her oyunda kolaydan zora 30 bölüm vardır.</p>
@@ -273,8 +278,9 @@
             <div class="resim">${k.resim}</div><div class="ad">${k.ad}</div><div class="alt">${k.alt}</div>
             <div class="durum">${IKON.oynat.replace("<svg", '<svg width="16" height="16"')} ${hazir} oyun</div></a>`;
         }).join("")}</section>
-        <p class="not">Öğretmen notu: Her oyun ilk açıldığında bir el nasıl oynanacağını gösterir; üstteki el düğmesiyle istediğiniz an yeniden izletebilirsiniz. "Çok zor" bölümler meraklı ve hızlı ilerleyen çocuklar içindir, herkesin bitirmesi gerekmez. Oyunları akıllı tahtada tam ekran açabilirsiniz. Çocuğun ilerlemesi bu cihazdaki tarayıcıda saklanır.</p>
-        <div class="sifirla-yer"><button class="dugme${ogretmenMi() ? " ogretmen-acik" : ""}" type="button" data-ogretmen>${IKON.cevap}<span>${ogretmenMi() ? "Öğretmen modu açık · Kapat" : "Öğretmen modu"}</span></button>${ogretmenMi() ? `<button class="dugme ogretmen-acik" type="button" data-araclar>${IKON.kisi}<span>Öğretmen araçları</span></button>` : ""}${ogretmenMi() && hesapAdi() ? `<button class="dugme ogretmen-acik" type="button" data-duzenle-ac>${IKON.cevap}<span>${hesapAdi().replace(/[<>&"]/g, "")} · İlerlemeyi düzenle</span></button>` : ""}<button class="dugme" type="button" data-sifirla>${IKON.tekrar}<span>Tüm oyunları sıfırla</span></button></div>
+        <section class="ogretmen-alani" aria-label="Öğretmenler ve aileler için"><h2>Öğretmenler ve aileler için</h2>
+        <p class="not">Her oyun ilk açıldığında bir el nasıl oynanacağını gösterir; üstteki el düğmesiyle istediğiniz an yeniden izletebilirsiniz. "Çok zor" bölümler meraklı ve hızlı ilerleyen çocuklar içindir, herkesin bitirmesi gerekmez. Oyunları akıllı tahtada tam ekran açabilirsiniz. Çocuğun ilerlemesi bu cihazdaki tarayıcıda saklanır.</p>
+        <div class="sifirla-yer"><button class="dugme${ogretmenMi() ? " ogretmen-acik" : ""}" type="button" data-ogretmen>${IKON.cevap}<span>${ogretmenMi() ? "Öğretmen modu açık · Kapat" : "Öğretmen modu"}</span></button>${ogretmenMi() ? `<button class="dugme ogretmen-acik" type="button" data-araclar>${IKON.kisi}<span>Öğretmen araçları</span></button>` : ""}${ogretmenMi() && hesapAdi() ? `<button class="dugme ogretmen-acik" type="button" data-duzenle-ac>${IKON.cevap}<span>${hesapAdi().replace(/[<>&"]/g, "")} · İlerlemeyi düzenle</span></button>` : ""}<button class="dugme" type="button" data-sifirla>${IKON.tekrar}<span>Tüm oyunları sıfırla</span></button></div></section>
       </main>`;
     tamEkranDugmeleriniGuncelle();
     kok().querySelector("[data-tam-ekran]").onclick = tamEkranDegistir;
