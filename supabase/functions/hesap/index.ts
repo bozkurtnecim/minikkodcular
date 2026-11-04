@@ -27,7 +27,7 @@ const oturum = (s: { access_token: string; refresh_token: string }) => ({ access
 const maskele = (e: string) => { const [a, b] = e.split("@"); return a.slice(0, 2) + "***@" + b; };
 
 async function profilBul(ad: string) {
-  const { data } = await yonetici.from("profiller").select("id, kullanici_adi, eposta").ilike("kullanici_adi", ad.replace(/[%_\\]/g, "\\$&")).maybeSingle();
+  const { data } = await yonetici.from("profiller").select("id, kullanici_adi, eposta, yonetici, ogretmen").ilike("kullanici_adi", ad.replace(/[%_\\]/g, "\\$&")).maybeSingle();
   if (!data) return null;
   const { data: u } = await yonetici.auth.admin.getUserById(data.id);
   return u?.user ? { ...data, girisEposta: u.user.email! } : null;
@@ -94,17 +94,21 @@ Deno.serve(async (req) => {
     if (!eposta) return hata("yetki_yok", 401);
     const { data: o } = await yonetici.from("ogretmenler").select("yonetici").ilike("eposta", eposta.replace(/[%_\\]/g, "\\$&")).maybeSingle();
     if (!o || (g.islem === "yonetici_giris" && !o.yonetici)) return hata("yetki_yok", 403);
-    // Hesaba gir: ayrıca yönetici işaretli bir hesapla giriş yapılmış olmalı (gövdede o hesabın oturum anahtarı)
-    if (g.islem === "yonetici_giris") {
-      const ht = String(g.hesap_token || "");
-      const { data: h } = ht ? await yonetici.auth.getUser(ht) : { data: { user: null } };
-      const { data: hp } = h.user ? await yonetici.from("profiller").select("yonetici").eq("id", h.user.id).maybeSingle() : { data: null };
-      if (!hp?.yonetici) return hata("hesap_yetki_yok", 403);
-    }
+    // E-postanın yanında işaretli bir hesapla da giriş yapılmış olmalı (gövdede o hesabın oturum anahtarı):
+    // Hesaba gir için yönetici hesabı, Şifre belirle için öğretmen ya da yönetici hesabı
+    const ht = String(g.hesap_token || "");
+    const { data: h } = ht ? await yonetici.auth.getUser(ht) : { data: { user: null } };
+    const { data: hp } = h.user ? await yonetici.from("profiller").select("yonetici, ogretmen").eq("id", h.user.id).maybeSingle() : { data: null };
+    if (g.islem === "yonetici_giris" && !hp?.yonetici) return hata("hesap_yetki_yok", 403);
+    if (g.islem === "ogretmen_sifre" && !hp?.ogretmen && !hp?.yonetici) return hata("hesap_ogretmen_degil", 403);
+    // Tam yönetici: yönetici e-postası + yönetici hesabı. Her hesaba erişebilir.
+    const tamYonetici = !!o.yonetici && !!hp?.yonetici;
     const p = ad && (await profilBul(ad));
     if (!p) return hata("kullanici_yok", 404);
 
     if (g.islem === "ogretmen_sifre") {
+      // Öğretmenler yalnız öğrenci hesaplarının şifresini değiştirebilir; öğretmen ve yönetici hesaplarına yalnız tam yönetici dokunur
+      if (!tamYonetici && (p.yonetici || p.ogretmen)) return hata("hedef_korumali", 403);
       if (sifre.length < 6) return hata("sifre_kisa");
       const { error } = await yonetici.auth.admin.updateUserById(p.id, { password: sifre });
       if (error) return hata("sifre_kisa");

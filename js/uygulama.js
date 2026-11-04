@@ -570,17 +570,14 @@
       try {
         const sb = await supabaseYukle(), { data } = await sb.auth.getSession();
         if (!data.session) return hataYaz("Öğretmen oturumunuz bulunamadı. Öğretmen modunu kapatıp yeniden açın.");
-        // Hesaba gir: yönetici hesabıyla da giriş yapılmış olmalı (sunucu ayrıca doğrular)
-        let hesap_token = "";
-        if (sekme === "gir") {
-          if (!hesapAdi() || yardimda()) return hataYaz("Hesaba girmek için önce sağ üstten kendi yönetici hesabınızla giriş yapın.");
-          const { data: h } = await (await hesapSb()).auth.getSession();
-          hesap_token = (h.session && h.session.access_token) || "";
-        }
+        // Hesaba gir için yönetici hesabıyla, şifre belirlemek için öğretmen hesabıyla da giriş yapılmış olmalı (sunucu ayrıca doğrular)
+        if (!hesapAdi() || yardimda()) return hataYaz(sekme === "gir" ? "Hesaba girmek için önce sağ üstten kendi yönetici hesabınızla giriş yapın." : "Şifre belirlemek için önce sağ üstten kendi öğretmen hesabınızla giriş yapın.");
+        const { data: h } = await (await hesapSb()).auth.getSession();
+        const hesap_token = (h.session && h.session.access_token) || "";
         const y = await fetch(HESAP_FONK, { method: "POST", headers: { "Content-Type": "application/json", apikey: SUPABASE_ANAHTAR_SABIT, Authorization: "Bearer " + data.session.access_token },
           body: JSON.stringify({ islem: sekme === "gir" ? "yonetici_giris" : "ogretmen_sifre", kullanici: ad, sifre, hesap_token }) });
         let cvp = {}; try { cvp = await y.json(); } catch (er) {}
-        if (cvp.hata) return hataYaz({ yetki_yok: "Bu işlem için yetkiniz yok.", hesap_yetki_yok: "Giriş yaptığınız hesap yönetici değil. Hesaba girmek için yönetici hesabıyla giriş yapın.", kullanici_yok: "Bu kullanıcı adı bulunamadı." }[cvp.hata] || HESAP_HATA[cvp.hata] || "Bir sorun oldu, yeniden deneyin.");
+        if (cvp.hata) return hataYaz({ yetki_yok: "Bu işlem için yetkiniz yok.", hesap_yetki_yok: "Giriş yaptığınız hesap yönetici değil. Hesaba girmek için yönetici hesabıyla giriş yapın.", hesap_ogretmen_degil: "Giriş yaptığınız hesap öğretmen hesabı değil. Şifre belirlemek için öğretmen hesabınızla giriş yapın.", hedef_korumali: "Bu bir öğretmen ya da yönetici hesabı. Şifresini yalnız site yöneticisi değiştirebilir.", kullanici_yok: "Bu kullanıcı adı bulunamadı." }[cvp.hata] || HESAP_HATA[cvp.hata] || "Bir sorun oldu, yeniden deneyin.");
         if (sekme === "sifre") { form.sifre.value = ""; return hataYaz(`${cvp.kullanici} için yeni şifre kaydedildi.`, true); }
         // Yardıma girmeden önceki hesabı sakla: çıkınca ona dönülür
         try {
