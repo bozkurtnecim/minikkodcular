@@ -128,6 +128,8 @@ Deno.serve(async (req) => {
       if (error) return hata("sifre_kisa");
       return cevap({ tamam: true, kullanici: p.kullanici_adi });
     }
+    // Yöneticiler birbirinin hesabına giremez; öğretmen ve öğrenci hesaplarına girebilir
+    if (p.yonetici) return hata("hedef_yonetici", 403);
     // Yönetici girişi: e-posta göndermeden tek kullanımlık bağlantı üretip hemen oturuma çevir
     const { data: l, error: le } = await yonetici.auth.admin.generateLink({ type: "magiclink", email: p.girisEposta });
     if (le || !l.properties?.hashed_token) return hata("giris_olmadi", 500);
