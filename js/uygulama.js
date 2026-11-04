@@ -385,6 +385,7 @@
     cok_deneme: "Çok fazla deneme yapıldı. Biraz bekleyip yeniden deneyin.",
     kod_yanlis: "Kod doğru değil ya da süresi dolmuş.",
     gonderilemedi: "E-posta gönderilemedi. Biraz sonra yeniden deneyin.",
+    yonetici_eposta_yok: "Bu yönetici hesabına kayıtlı e-posta yok. Supabase'de hesaba e-posta ekleyin.",
   };
   function hesapPenceresi(kip) {
     kip = kip || (hesapAdi() ? "hesap" : "giris");
@@ -396,6 +397,8 @@
       giris: `<h2>Giriş yap</h2>
         <input class="og-girdi" name="kullanici" autocomplete="username" placeholder="Kullanıcı adı" required>
         <input class="og-girdi" name="sifre" type="password" autocomplete="current-password" placeholder="Şifre" required>
+        <p class="hs-not" data-aciklama hidden></p>
+        <input class="og-girdi og-kod" name="kod" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="Kod" hidden>
         ${hatirlaKutu}
         <p class="og-hata" role="alert" hidden></p>
         <button class="dugme og-ana" type="submit">Giriş yap</button>
@@ -450,8 +453,21 @@
       } else if (!ad) return hataYaz("Kullanıcı adını yazın.");
       ana.disabled = true;
       try {
-        if (kip === "giris" || kip === "kayit") {
+        if (kip === "giris" && asama === "kod") {
+          // Yönetici hesabı: e-postaya gelen kodla ikinci doğrulama
+          if (!/^\d{6,10}$/.test(form.kod.value.replace(/\s/g, ""))) return hataYaz("E-postadaki kodu yazın.");
+          const cvp = await hesapCagir({ islem: "giris_dogrula", kullanici: ad, sifre, kod: form.kod.value.replace(/\s/g, "") });
+          if (!cvp.oturum) return hataYaz(HESAP_HATA[cvp.hata] || "Bir sorun oldu, yeniden deneyin.");
+          await oturumAc(cvp, hatirla);
+          ses.yerlesti(); kapat(); yonlendir();
+        } else if (kip === "giris" || kip === "kayit") {
           const cvp = await hesapCagir(kip === "giris" ? { islem: "giris", kullanici: ad, sifre } : { islem: "kayit", kullanici: ad, sifre, eposta: form.eposta.value.trim() });
+          if (cvp.dogrulama) {
+            asama = "kod"; form.kullanici.readOnly = true; form.sifre.readOnly = true; form.kod.hidden = false; form.kod.focus();
+            const ac = form.querySelector("[data-aciklama]"); ac.hidden = false;
+            ac.textContent = `Bu bir yönetici hesabı. ${cvp.eposta} adresine gelen kodu yazın. Gelen kutusunda yoksa istenmeyen klasörüne bakın.`;
+            ana.textContent = "Doğrula"; return;
+          }
           if (!cvp.oturum) return hataYaz(HESAP_HATA[cvp.hata] || "Bir sorun oldu, yeniden deneyin.");
           await oturumAc(cvp, hatirla);
           ses.yerlesti(); kapat(); yonlendir();

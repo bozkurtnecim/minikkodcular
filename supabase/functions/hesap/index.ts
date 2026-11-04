@@ -1,4 +1,5 @@
 // Minik Kodcular hesap işlemleri: kullanıcı adı + şifreyle kayıt ve giriş, e-postayla şifre sıfırlama.
+// Yönetici hesapları girişte şifreye ek olarak hesabın e-postasına gelen kodla doğrulanır.
 // Supabase Auth e-posta ister; e-postası olmayan hesaplar için gönderilmeyen, kullanıcı adından türetilmiş bir adres kullanılır.
 // Hesaplar sunucuda onaylı oluşturulur, bu yüzden kayıtta e-posta gönderilmez.
 // Yayın: Supabase'de "hesap" adıyla, verify_jwt kapalı (fonksiyon kendi doğrulamasını yapar).
@@ -55,12 +56,25 @@ Deno.serve(async (req) => {
     return cevap({ oturum: oturum(s.session), kullanici: ad });
   }
 
-  if (g.islem === "giris") {
+  if (g.islem === "giris" || g.islem === "giris_dogrula") {
     const p = ad && (await profilBul(ad));
     if (!p || !sifre) return hata("bilgi_yanlis", 401);
     const { data: s, error } = await anonim().auth.signInWithPassword({ email: p.girisEposta, password: sifre });
     if (error || !s.session) return hata(/rate|too many/i.test(error?.message || "") ? "cok_deneme" : "bilgi_yanlis", 401);
-    return cevap({ oturum: oturum(s.session), kullanici: p.kullanici_adi });
+    if (!p.yonetici) return cevap({ oturum: oturum(s.session), kullanici: p.kullanici_adi });
+    // Yönetici hesabı: şifre doğru olsa da oturum verilmez, hesabın e-postasına gelen kod da istenir
+    await yonetici.auth.admin.signOut(s.session.access_token, "local").catch(() => {});
+    if (!p.eposta) return hata("yonetici_eposta_yok", 403);
+    if (g.islem === "giris") {
+      const { error: oe } = await anonim().auth.signInWithOtp({ email: p.girisEposta, options: { shouldCreateUser: false } });
+      if (oe) return hata(/rate|seconds|limit/i.test(oe.message) ? "cok_deneme" : "gonderilemedi", 429);
+      return cevap({ dogrulama: true, eposta: maskele(p.girisEposta), kullanici: p.kullanici_adi });
+    }
+    const kod = String(g.kod || "").replace(/\s/g, "");
+    if (!/^\d{6,10}$/.test(kod)) return hata("kod_yanlis", 401);
+    const { data: v, error: ve } = await anonim().auth.verifyOtp({ email: p.girisEposta, token: kod, type: "email" });
+    if (ve || !v.session) return hata("kod_yanlis", 401);
+    return cevap({ oturum: oturum(v.session), kullanici: p.kullanici_adi });
   }
 
   if (g.islem === "sifre_iste") {
