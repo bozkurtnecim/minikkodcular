@@ -18,7 +18,7 @@
     ["Minik Aşçı", 1], ["Hayvan Korosu", 2], ["Tangram", 0], ["Arıyı Çiçeğe Götür", 3], ["Tavşanın Havuçları", 3], ["Trafik Lambası", 5],
     ["Roket Gezegene", 4], ["Renkli Fırça", 3], ["Renkli Halkalar", 3], ["Ahtapotun Hazinesi", 5], ["Kule Ustası", 1], ["Şifreli Resim", 3],
     ["Hangi Program?", 3], ["Sihirli Makine", 5], ["Kalem Kaplumbağa", 3], ["Ayıklama Makinesi", 5], ["Robot Postacı", 5], ["Makas Ustası", 5],
-    ["Robot Kamyonet", 3], ["Hata Avcısı", 5], ["Yapay Zekâya Öğret", 5], ["Robot Süpürge", 3], ["Kalem Tavşan", 3], ["Mezuniyet Görevi", 5], ["Dokununca Ne Olur?", 5], ["Engel Koşusu", 5], ["Uğur Böceği Yaprağa", 3], ["Yakından Bak", 0], ["Eksik Parça", 0], ["Döndür Yapboz", 0], ["Yarım Resim", 0], ["Pizza Paylaş", 0], ["Kayan Yapboz", 0], ["Şekil Avı", 0], ["Farklı Olanı Bul", 0],
+    ["Robot Kamyonet", 3], ["Hata Avcısı", 5], ["Yapay Zekâya Öğret", 5], ["Robot Süpürge", 3], ["Kalem Tavşan", 3], ["Mezuniyet Görevi", 5], ["Dokununca Ne Olur?", 5], ["Engel Koşusu", 5], ["Uğur Böceği Yaprağa", 3], ["Yakından Bak", 0], ["Eksik Parça", 0], ["Döndür Yapboz", 0], ["Yarım Resim", 0], ["Pizza Paylaş", 0], ["Kayan Yapboz", 0], ["Şekil Avı", 0], ["Farklı Olanı Bul", 0], ["Köşe Say", 0], ["Gizli Şekil", 0], ["Ayna Ayna", 0], ["Lastik Tahtası", 0],
   ];
   const HAFTALAR = PLAN.map(([ad, kavram], i) => ({ no: i + 1, ad, kavram, tur: Math.floor(i / 6) + 1 }));
 
@@ -235,7 +235,7 @@
   const KATEGORILER = [
     { id: "kodlama", ad: "Kodlama Oyunları", alt: "Komut, program, hata ayıklama", renk: "#8a5cf0", oyunlar: [39, 16, 25, 17, 32, 21, 27, 24, 20, 35, 18, 37, 26, 22, 19, 30, 38, 31, 34, 33], // null: o sıra şimdilik boş // basitten karmaşığa: komut → yön → eylem → hata bulma → toplama → renk tutma → bekleme → sayılı adım → tekrar
       resim: '<svg viewBox="0 0 120 100" aria-hidden="true"><rect x="30" y="20" width="60" height="50" rx="14" fill="#8a5cf0"/><circle cx="48" cy="44" r="8" fill="#fff"/><circle cx="72" cy="44" r="8" fill="#fff"/><circle cx="48" cy="44" r="3.5" fill="#26201f"/><circle cx="72" cy="44" r="3.5" fill="#26201f"/><path d="M50 58 q10 6 20 0" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M60 20 v-10" stroke="#5d6878" stroke-width="4"/><circle cx="60" cy="8" r="5" fill="#ffc23a"/><rect x="8" y="76" width="30" height="20" rx="6" fill="#2fb36a"/><path d="M16 86 h12 M24 81 l5 5 l-5 5" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/><rect x="45" y="76" width="30" height="20" rx="6" fill="#2f86e0"/><path d="M60 92 v-11 M55 85 l5 -5 l5 5" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/><rect x="82" y="76" width="30" height="20" rx="6" fill="#ff8a1f"/><path d="M90 86 h12 M96 81 l-5 5 l5 5" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/></svg>' },
-    { id: "yapboz", ad: "Yapboz ve Şekiller", alt: "Parça-bütün, görsel algı", renk: "#ff5a4e", oyunlar: [1, 5, 46, 47, 40, 41, 44, 42, 7, 43, 45, 15],
+    { id: "yapboz", ad: "Yapboz ve Şekiller", alt: "Parça-bütün, görsel algı", renk: "#ff5a4e", oyunlar: [1, 5, 46, 48, 47, 40, 49, 41, 44, 42, 50, 7, 43, 51, 45, 15],
       resim: '<svg viewBox="0 0 120 100" aria-hidden="true"><path d="M20 20 h30 v10 a8 8 0 1 0 0 14 v10 h-30 z" fill="#ff5a4e"/><path d="M50 20 h30 v34 h-10 a8 8 0 1 1 -14 0 h-6 v-10 a8 8 0 1 0 0 -14 z" fill="#ffc23a"/><path d="M20 54 h30 v6 a8 8 0 1 0 14 0 v-6 h16 v30 h-60 z" fill="#2f86e0"/><path d="M88 30 l20 20 l-20 20 z" fill="#2fb36a"/></svg>' },
     { id: "siralama", ad: "Sıralama", alt: "Sıra, zaman, büyüklük", renk: "#2f86e0", oyunlar: [2, 4, 8, 13],
       resim: '<svg viewBox="0 0 120 100" aria-hidden="true"><rect x="14" y="62" width="22" height="26" rx="5" fill="#2f86e0"/><rect x="42" y="46" width="22" height="42" rx="5" fill="#2fb36a"/><rect x="70" y="30" width="22" height="58" rx="5" fill="#ffc23a"/><rect x="98" y="14" width="14" height="74" rx="5" fill="#ff5a4e"/><text x="25" y="58" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="800" font-size="16" fill="#2f86e0">1</text><text x="53" y="42" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="800" font-size="16" fill="#2fb36a">2</text><text x="81" y="26" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="800" font-size="16" fill="#e3a008">3</text></svg>' },
@@ -490,7 +490,7 @@
   const KAYIT_ADI = { 1: "yapboz", 2: "sirala", 3: "boncuk", 4: "buyukluk", 5: "golge", 6: "siniflandir", 7: "sekiller", 8: "rutin", 9: "renk", 10: "dans",
     11: "tren", 12: "boru", 13: "asci", 14: "koro", 15: "tangram", 16: "ari", 17: "havuc", 18: "trafik", 19: "roket", 20: "firca", 21: "halka", 22: "ahtapot",
     23: "kule", 24: "sifre", 25: "hangi", 26: "makine", 27: "kaplumbaga", 30: "makas", 31: "kamyonet", 32: "hata", 33: "yapayzeka", 34: "supurge", 35: "tavsan",
-    37: "dokun", 38: "kosu3", 39: "ugur", 40: "yakindan", 41: "eksik", 42: "dondur", 43: "yarim", 44: "pizza", 45: "kayan", 46: "sekilavi", 47: "farkli" };
+    37: "dokun", 38: "kosu3", 39: "ugur", 40: "yakindan", 41: "eksik", 42: "dondur", 43: "yarim", 44: "pizza", 45: "kayan", 46: "sekilavi", 47: "farkli", 48: "kose", 49: "gizli", 50: "ayna", 51: "lastik" };
   function ilerlemeDuzenle() {
     if (!ogretmenMi() || !hesapAdi()) return;
     const ortu = document.createElement("div");
@@ -826,6 +826,10 @@
     45: "Boşluğun yanındaki kareye dokun, kare kayar. Kareleri kaydırarak resmi tamamla.",
     46: "Üstteki şekle bak. Aynı şekilden hepsini bul ve dokun.",
     47: "Kartlara dikkatle bak. Hangisi ötekilerden farklı? Ona dokun.",
+    48: "Şeklin köşelerini say. Şekli, üstünde o kadar nokta olan vagona koy.",
+    49: "Resimdeki çizgilere dikkatle bak. Aşağıdaki şekillerden hangisi resmin içinde saklanıyor? Ona dokun.",
+    50: "Aynaya bak. Resmin aynadaki görüntüsü hangisi? Doğru olana dokun.",
+    51: "Örnekteki şekle bak. Çivilere sırayla dokun, lastiği ger ve aynı şekli yap.",
     40: "Büyüteçteki küçük parçaya dikkatle bak. Bu parça hangi resimde? Bulup ona dokun.",
     41: "Resimde bir parça eksik. Aşağıdaki parçalardan doğru olanı bulup ona dokun.",
     42: "Resmin kareleri dönmüş. Karelere dokunarak çevir, resmi düzelt.",
