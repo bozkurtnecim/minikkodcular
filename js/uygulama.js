@@ -628,7 +628,13 @@
       document.head.appendChild(sc);
     });
   }
-  function ogretmenAc() {
+  async function ogretmenAc() {
+    // Bu cihazda daha önce kodla girilmişse ve e-posta hâlâ öğretmen listesindeyse yeniden kod istemeden aç
+    let hatirlanan = null;
+    try {
+      const sb = await supabaseYukle(), { data } = await sb.auth.getSession(), s = data && data.session;
+      if (s && s.user && s.user.email) { const { data: y, error } = await sb.rpc("ogretmen_yetkim"); if (!error && y) hatirlanan = { eposta: s.user.email, yetki: y }; }
+    } catch (e) {}
     const ortu = document.createElement("div");
     ortu.className = "sf-ortu";
     ortu.innerHTML = `<form class="sf-kutu og-kutu" role="dialog" aria-label="Öğretmen modu" novalidate>
@@ -638,6 +644,7 @@
         <input class="og-girdi og-kod" type="text" name="kod" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="••••••••" hidden>
         <p class="og-hata" role="alert" hidden></p>
         <div class="kt-satir"><button class="dugme" type="button" data-vazgec>Vazgeç</button><button class="dugme og-ana" type="submit">Kod gönder</button></div>
+        <button class="og-baska" type="button" data-baska hidden>Başka bir e-posta ile gir</button>
       </form>`;
     document.body.appendChild(ortu);
     const form = ortu.querySelector("form"), eposta = form.eposta, kod = form.kod, hata = form.querySelector(".og-hata"), ana = form.querySelector(".og-ana"), aciklama = form.querySelector("[data-aciklama]");
@@ -645,9 +652,26 @@
     const hataYaz = (m) => { hata.textContent = m; hata.hidden = !m; };
     const kapat = () => ortu.remove();
     ortu.addEventListener("click", (e) => { if (e.target === ortu || e.target.closest("[data-vazgec]")) kapat(); });
-    eposta.focus();
+    const acildi = (adres, yetki) => {
+      kayit.yaz("ogretmen", { eposta: adres, an: Date.now(), yetki });
+      ses.yerlesti();
+      form.innerHTML = `<h2>Öğretmen modu açıldı</h2><p>Bu cihazda bütün bölümler açık. Oyunlarda ${IKON.cevap.replace("<svg", '<svg width="18" height="18" style="vertical-align:-3px"')} düğmesiyle cevabı görebilirsiniz.</p><button class="dugme" type="button" data-vazgec>Tamam</button>`;
+      anaokuluSayfa();
+    };
+    const baska = form.querySelector("[data-baska]");
+    if (hatirlanan) {
+      asama = "hatirla"; eposta.value = hatirlanan.eposta; eposta.readOnly = true; baska.hidden = false;
+      aciklama.textContent = "Bu cihaz sizi hatırlıyor. Kod beklemeden devam edebilirsiniz.";
+      ana.textContent = "Devam et"; ana.focus();
+      baska.onclick = async () => {
+        try { const sb = await supabaseYukle(); await sb.auth.signOut({ scope: "local" }); } catch (e) {}
+        asama = "eposta"; eposta.readOnly = false; eposta.value = ""; baska.hidden = true; hataYaz("");
+        aciklama.textContent = "E-posta adresinizi yazın, size bir giriş kodu gönderelim."; ana.textContent = "Kod gönder"; eposta.focus();
+      };
+    } else eposta.focus();
     form.onsubmit = async (e) => {
       e.preventDefault(); hataYaz("");
+      if (asama === "hatirla") return acildi(hatirlanan.eposta, hatirlanan.yetki);
       ana.disabled = true;
       const adres = eposta.value.trim();
       if (asama === "eposta" && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(adres)) { hataYaz("Geçerli bir e-posta adresi yazın."); ana.disabled = false; return; }
@@ -669,18 +693,15 @@
           if (error) { hataYaz("Kod doğru değil ya da süresi dolmuş."); return; }
           let yetki = "ogretmen";
           try { const { data: y } = await sb.rpc("ogretmen_yetkim"); if (y) yetki = y; } catch (e) {}
-          kayit.yaz("ogretmen", { eposta: eposta.value.trim(), an: Date.now(), yetki });
-          ses.yerlesti();
-          form.innerHTML = `<h2>Öğretmen modu açıldı</h2><p>Bu cihazda bütün bölümler açık. Oyunlarda ${IKON.cevap.replace("<svg", '<svg width="18" height="18" style="vertical-align:-3px"')} düğmesiyle cevabı görebilirsiniz.</p><button class="dugme" type="button" data-vazgec>Tamam</button>`;
-          anaokuluSayfa();
+          acildi(eposta.value.trim(), yetki);
         }
       } catch (err) { hataYaz("Bağlantı kurulamadı. İnternet bağlantınızı kontrol edin."); }
       finally { ana.disabled = false; }
     };
   }
   async function ogretmenKapat() {
+    // Supabase oturumu açık kalır: bu cihazda yeniden açarken e-posta kodu gerekmez
     try { localStorage.removeItem("mk:ogretmen"); } catch (e) {}
-    try { const sb = await supabaseYukle(); await sb.auth.signOut(); } catch (e) {}
     anaokuluSayfa();
   }
 

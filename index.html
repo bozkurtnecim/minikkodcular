@@ -171,6 +171,8 @@ body.oyunda { overflow: hidden; }
 .og-kutu { text-align: center; }
 .sifirla-yer .dugme, .og-kutu .dugme { width: auto; padding: 0 18px; }
 .og-girdi { width: 100%; box-sizing: border-box; min-height: 52px; padding: 0 14px; border: 3px solid var(--cizgi); border-radius: 14px; font: 700 1.1rem var(--f-govde); color: var(--murekkep); background: #fff; }
+.og-baska[hidden] { display: none; }
+.og-baska { display: block; margin: 12px auto 0; padding: 6px 10px; border: 0; background: none; color: var(--mavi); font: 700 .95rem var(--f-govde); text-decoration: underline; cursor: pointer; }
 .og-girdi:focus { outline: none; border-color: var(--mavi); }
 .og-kod { text-align: center; letter-spacing: .4em; font: 800 1.6rem var(--f-baslik); }
 .og-hata { color: var(--kirmizi) !important; }
@@ -331,63 +333,63 @@ body:not(.oyunda)::before { background: transparent; }
 <body>
 <div id="uygulama"></div>
 
-<script src="js/resimler.js?v=13"></script>
-<script src="js/nesneler.js?v=13"></script>
-<script src="js/rutinler.js?v=13"></script>
-<script src="js/uygulama.js?v=13"></script>
-<script src="oyunlar/hafta01-yapboz.js?v=13"></script>
-<script src="oyunlar/hafta02-sirala.js?v=13"></script>
-<script src="oyunlar/hafta03-boncuk.js?v=13"></script>
-<script src="oyunlar/hafta04-buyukluk.js?v=13"></script>
-<script src="oyunlar/hafta05-golge.js?v=13"></script>
-<script src="oyunlar/hafta06-siniflandir.js?v=13"></script>
-<script src="oyunlar/hafta07-sekiller.js?v=13"></script>
-<script src="oyunlar/hafta08-rutin.js?v=13"></script>
-<script src="oyunlar/hafta09-renk.js?v=13"></script>
-<script src="oyunlar/hafta10-dans.js?v=13"></script>
-<script src="oyunlar/hafta11-tren.js?v=13"></script>
-<script src="oyunlar/hafta12-boru.js?v=13"></script>
-<script src="oyunlar/hafta13-asci.js?v=13"></script>
-<script src="oyunlar/hafta14-koro.js?v=13"></script>
-<script src="oyunlar/hafta15-tangram.js?v=13"></script>
-<script src="oyunlar/hafta16-ari.js?v=13"></script>
-<script src="oyunlar/hafta17-tavsan.js?v=13"></script>
-<script src="oyunlar/hafta18-trafik.js?v=13"></script>
-<script src="oyunlar/hafta19-roket.js?v=13"></script>
-<script src="oyunlar/hafta20-firca.js?v=13"></script>
-<script src="oyunlar/hafta21-halka.js?v=13"></script>
-<script src="oyunlar/hafta22-ahtapot.js?v=13"></script>
-<script src="js/dongu-motoru.js?v=13"></script>
-<script src="oyunlar/hafta23-kule.js?v=13"></script>
-<script src="oyunlar/hafta24-sifre.js?v=13"></script>
-<script src="oyunlar/hafta25-hangi.js?v=13"></script>
-<script src="oyunlar/hafta26-makine.js?v=13"></script>
-<script src="oyunlar/hafta27-kaplumbaga.js?v=13"></script>
-<script src="oyunlar/hafta30-makas.js?v=13"></script>
-<script src="oyunlar/hafta31-kamyonet.js?v=13"></script>
-<script src="oyunlar/hafta33-yapayzeka.js?v=13"></script>
-<script src="oyunlar/hafta34-supurge.js?v=13"></script>
-<script src="oyunlar/hafta35-tavsan.js?v=13"></script>
-<script src="oyunlar/hafta37-dokun.js?v=13"></script>
-<script src="oyunlar/hafta38-kosu.js?v=13"></script>
-<script src="oyunlar/hafta39-ugur.js?v=13"></script>
-<script src="oyunlar/hafta40-yakindan.js?v=13"></script>
-<script src="oyunlar/hafta41-eksik.js?v=13"></script>
-<script src="oyunlar/hafta42-dondur.js?v=13"></script>
-<script src="oyunlar/hafta43-yarim.js?v=13"></script>
-<script src="oyunlar/hafta44-pizza.js?v=13"></script>
-<script src="oyunlar/hafta45-kayan.js?v=13"></script>
-<script src="oyunlar/hafta46-sekilavi.js?v=13"></script>
-<script src="oyunlar/hafta47-farkli.js?v=13"></script>
-<script src="oyunlar/hafta48-kose.js?v=13"></script>
-<script src="oyunlar/hafta49-gizli.js?v=13"></script>
-<script src="oyunlar/hafta50-ayna.js?v=13"></script>
-<script src="oyunlar/hafta51-lastik.js?v=13"></script>
-<script src="oyunlar/hafta52-cubuk.js?v=13"></script>
-<script src="oyunlar/hafta53-kule.js?v=13"></script>
-<script src="oyunlar/hafta54-kalip.js?v=13"></script>
-<script src="oyunlar/hafta55-katla.js?v=13"></script>
-<script src="oyunlar/hafta32-hata.js?v=13"></script>
+<script src="js/resimler.js?v=14"></script>
+<script src="js/nesneler.js?v=14"></script>
+<script src="js/rutinler.js?v=14"></script>
+<script src="js/uygulama.js?v=14"></script>
+<script src="oyunlar/hafta01-yapboz.js?v=14"></script>
+<script src="oyunlar/hafta02-sirala.js?v=14"></script>
+<script src="oyunlar/hafta03-boncuk.js?v=14"></script>
+<script src="oyunlar/hafta04-buyukluk.js?v=14"></script>
+<script src="oyunlar/hafta05-golge.js?v=14"></script>
+<script src="oyunlar/hafta06-siniflandir.js?v=14"></script>
+<script src="oyunlar/hafta07-sekiller.js?v=14"></script>
+<script src="oyunlar/hafta08-rutin.js?v=14"></script>
+<script src="oyunlar/hafta09-renk.js?v=14"></script>
+<script src="oyunlar/hafta10-dans.js?v=14"></script>
+<script src="oyunlar/hafta11-tren.js?v=14"></script>
+<script src="oyunlar/hafta12-boru.js?v=14"></script>
+<script src="oyunlar/hafta13-asci.js?v=14"></script>
+<script src="oyunlar/hafta14-koro.js?v=14"></script>
+<script src="oyunlar/hafta15-tangram.js?v=14"></script>
+<script src="oyunlar/hafta16-ari.js?v=14"></script>
+<script src="oyunlar/hafta17-tavsan.js?v=14"></script>
+<script src="oyunlar/hafta18-trafik.js?v=14"></script>
+<script src="oyunlar/hafta19-roket.js?v=14"></script>
+<script src="oyunlar/hafta20-firca.js?v=14"></script>
+<script src="oyunlar/hafta21-halka.js?v=14"></script>
+<script src="oyunlar/hafta22-ahtapot.js?v=14"></script>
+<script src="js/dongu-motoru.js?v=14"></script>
+<script src="oyunlar/hafta23-kule.js?v=14"></script>
+<script src="oyunlar/hafta24-sifre.js?v=14"></script>
+<script src="oyunlar/hafta25-hangi.js?v=14"></script>
+<script src="oyunlar/hafta26-makine.js?v=14"></script>
+<script src="oyunlar/hafta27-kaplumbaga.js?v=14"></script>
+<script src="oyunlar/hafta30-makas.js?v=14"></script>
+<script src="oyunlar/hafta31-kamyonet.js?v=14"></script>
+<script src="oyunlar/hafta33-yapayzeka.js?v=14"></script>
+<script src="oyunlar/hafta34-supurge.js?v=14"></script>
+<script src="oyunlar/hafta35-tavsan.js?v=14"></script>
+<script src="oyunlar/hafta37-dokun.js?v=14"></script>
+<script src="oyunlar/hafta38-kosu.js?v=14"></script>
+<script src="oyunlar/hafta39-ugur.js?v=14"></script>
+<script src="oyunlar/hafta40-yakindan.js?v=14"></script>
+<script src="oyunlar/hafta41-eksik.js?v=14"></script>
+<script src="oyunlar/hafta42-dondur.js?v=14"></script>
+<script src="oyunlar/hafta43-yarim.js?v=14"></script>
+<script src="oyunlar/hafta44-pizza.js?v=14"></script>
+<script src="oyunlar/hafta45-kayan.js?v=14"></script>
+<script src="oyunlar/hafta46-sekilavi.js?v=14"></script>
+<script src="oyunlar/hafta47-farkli.js?v=14"></script>
+<script src="oyunlar/hafta48-kose.js?v=14"></script>
+<script src="oyunlar/hafta49-gizli.js?v=14"></script>
+<script src="oyunlar/hafta50-ayna.js?v=14"></script>
+<script src="oyunlar/hafta51-lastik.js?v=14"></script>
+<script src="oyunlar/hafta52-cubuk.js?v=14"></script>
+<script src="oyunlar/hafta53-kule.js?v=14"></script>
+<script src="oyunlar/hafta54-kalip.js?v=14"></script>
+<script src="oyunlar/hafta55-katla.js?v=14"></script>
+<script src="oyunlar/hafta32-hata.js?v=14"></script>
 <script>Uygulama.baslat();</script>
 </body>
 </html>
