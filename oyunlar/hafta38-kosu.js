@@ -263,6 +263,8 @@
     const k = dikey ? Math.min((W - 20) / b.C, (H - satir * (p + 8) - 2 * p - 130) / b.R, 100) : Math.min((W * 0.55 - 20) / b.C, (H - 20) / b.R, 110);
     d.k = Math.max(34, Math.floor(k));
     d.sahne.style.setProperty("--k", d.k + "px"); d.sahne.style.setProperty("--p", p + "px");
+    // Hâlâ sığmıyorsa (telefonda alttaki düğme kesilmesin) küçült
+    for (let t = 0; t < 40 && d.k > 30 && d.sahne.scrollHeight > d.sahne.clientHeight + 1; t++) { d.k -= 2; d.sahne.style.setProperty("--k", d.k + "px"); }
     tilkiKoy(...(d.yer || nokta(b.yol[0])), d.aci, false);
   }
   function tilkiKoy(r, c, aci, anim = true) {

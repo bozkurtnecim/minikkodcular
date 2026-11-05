@@ -85,7 +85,11 @@
     navCiz();
     d.sahne.innerHTML = `<div class="sd-tablo" style="--n:${b.n}">${b.cozum.map((v, k) => `<button class="sd-kare${b.verilen[k] ? " verilen" : ""}" type="button" data-k="${k}" aria-label="Kare">${b.verilen[k] ? resim(b.resimler[v]) : ""}</button>`).join("")}</div>
       <div class="sd-palet">${b.resimler.map((id, v) => `<button class="sd-resim" type="button" data-v="${v}" aria-label="${NESNELER[id] ? NESNELER[id].ad : id}">${resim(id)}</button>`).join("")}</div>`;
-    d.sahne.querySelectorAll(".sd-resim").forEach((el) => (el.onclick = () => { if (d.mesgul) return; d.secili = +el.dataset.v; d.api.ses.tik(); paletCiz(); }));
+    d.sahne.querySelectorAll(".sd-resim").forEach((el) => {
+      el.onclick = () => { if (d.mesgul) return; d.secili = +el.dataset.v; d.api.ses.tik(); paletCiz(); };
+      // Resim boş kareye sürüklenebilir de
+      Uygulama.surukleBirak(el, { hedef: ".sd-kare:not(.verilen)", birak: (k) => { d.secili = +el.dataset.v; paletCiz(); koy(+k.dataset.k); }, izin: () => !d.mesgul });
+    });
     d.sahne.querySelectorAll(".sd-kare:not(.verilen)").forEach((el) => (el.onclick = () => koy(+el.dataset.k)));
     paletCiz(); boyutla();
   }

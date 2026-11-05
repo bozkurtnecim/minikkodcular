@@ -1028,8 +1028,43 @@
     window.scrollTo(0, 0);
   }
 
+  // Ortak sürükle-bırak: dokunma (tıklama) olduğu gibi çalışır; parmak 8 pikselden fazla kayarsa öğenin kopyası parmağı izler,
+  // bırakılınca altındaki hedefe (CSS seçici) birak(hedefÖğe) çağrılır. Sürüklemeden sonra gelen tıklama yutulur.
+  function surukleBirak(kaynak, { hedef, birak, izin }) {
+    if (!kaynak || kaynak.dataset.sb) return;
+    kaynak.dataset.sb = "1"; kaynak.style.touchAction = "none";
+    let bas = null, ucan = null, ustteki = null, w = 0, h = 0, tikYut = false;
+    const temizle = () => { if (ucan) ucan.remove(); ucan = null; kaynak.classList.remove("sb-kaynak"); if (ustteki) ustteki.classList.remove("sb-hedef"); ustteki = null; };
+    kaynak.addEventListener("pointerdown", (e) => { if (e.button > 0 || (izin && !izin())) return; bas = { x: e.clientX, y: e.clientY, id: e.pointerId }; });
+    kaynak.addEventListener("pointermove", (e) => {
+      if (!bas) return;
+      if (!ucan) {
+        if (Math.hypot(e.clientX - bas.x, e.clientY - bas.y) < 8) return;
+        try { kaynak.setPointerCapture(bas.id); } catch (er) {}
+        const r = kaynak.getBoundingClientRect(); w = r.width; h = r.height;
+        ucan = kaynak.cloneNode(true); ucan.removeAttribute("id"); ucan.classList.add("sb-ucan");
+        Object.assign(ucan.style, { position: "fixed", left: "0px", top: "0px", width: w + "px", height: h + "px", margin: "0", zIndex: 9000, pointerEvents: "none" });
+        document.body.appendChild(ucan); kaynak.classList.add("sb-kaynak");
+      }
+      e.preventDefault();
+      ucan.style.transform = `translate(${e.clientX - w / 2}px, ${e.clientY - h / 2}px) scale(1.08) rotate(-3deg)`;
+      const alt = document.elementFromPoint(e.clientX, e.clientY), yeni = alt && alt.closest(hedef);
+      if (yeni !== ustteki) { if (ustteki) ustteki.classList.remove("sb-hedef"); ustteki = yeni; if (yeni) yeni.classList.add("sb-hedef"); }
+    });
+    const bitti = (iptal) => {
+      if (!bas) return; bas = null;
+      if (!ucan) return;
+      const h2 = ustteki; temizle(); tikYut = true; setTimeout(() => (tikYut = false), 400);
+      if (h2 && !iptal) birak(h2);
+    };
+    kaynak.addEventListener("pointerup", () => bitti(false));
+    kaynak.addEventListener("pointercancel", () => bitti(true));
+    kaynak.addEventListener("click", (e) => { if (tikYut) { tikYut = false; e.preventDefault(); e.stopImmediatePropagation(); } }, true);
+  }
+
   window.Uygulama = {
     oyunEkle(no, oyun) { oyunlar[no] = oyun; },
+    surukleBirak,
     // Bütün oyunlarda 30 bölüm aynı düzende: 3 çok kolay, 3 kolay, 6 orta, 6 zor, 12 çok zor
     seviye(i) { return i < 3 ? "Çok kolay" : i < 6 ? "Kolay" : i < 12 ? "Orta" : i < 18 ? "Zor" : "Çok zor"; },
     baslat() { window.addEventListener("hashchange", yonlendir); yonlendir(); hesapBaslat(); },

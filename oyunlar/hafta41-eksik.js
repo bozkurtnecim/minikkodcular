@@ -116,7 +116,7 @@
     d.sahne.innerHTML = `
       <div class="ep-resim" style="background-image:url('${src}')">${k.bosluk.map((h) => `<div class="ep-bosluk" data-h="${h}" style="left:${(h % b.g) * w}%;top:${Math.floor(h / b.g) * w}%;width:${w}%;height:${w}%"></div>`).join("")}</div>
       <div class="ep-secenekler">${k.secenek.map((p, j) => `<button class="ep-parca" type="button" data-j="${j}" aria-label="Parça"><i style="${parcaStil(b, p)}"></i></button>`).join("")}</div>`;
-    d.sahne.querySelectorAll(".ep-parca").forEach((el) => (el.onclick = () => sec(el)));
+    d.sahne.querySelectorAll(".ep-parca").forEach((el) => { el.onclick = () => sec(el); Uygulama.surukleBirak(el, { hedef: ".ep-resim", birak: () => sec(el), izin: () => !d.mesgul }); });
     boyutla();
   }
   function boyutla() {

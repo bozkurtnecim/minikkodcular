@@ -87,6 +87,8 @@
   function sekilGoster() {
     const b = BOLUMLER[d.idx], s = b.sekiller[d.sira];
     d.sahne.querySelector(".ks-yer").innerHTML = `<div class="ks-sekil">${svg(s.s, s.renk, b.noktali)}</div>`;
+    // Şekil vagona sürüklenebilir de (dokunmayla vagon seçmek de çalışır)
+    Uygulama.surukleBirak(d.sahne.querySelector(".ks-sekil"), { hedef: ".ks-vagon", birak: (v) => sec(v), izin: () => !d.mesgul });
   }
   function boyutla() {
     if (!d) return;

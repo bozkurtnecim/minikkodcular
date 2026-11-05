@@ -175,6 +175,12 @@
     d.k = Math.max(40, Math.floor(k));
     d.sahne.style.setProperty("--k", d.k + "px"); d.sahne.style.setProperty("--p", p + "px");
     zeminCiz();
+    // Kâğıt (köşedeki karakter payıyla) ekrana sığmıyorsa küçült: karakter sol/sağ kenardan taşmasın, alttaki düğme kesilmesin
+    const sigmiyor = () => {
+      const s = d.sahne.getBoundingClientRect(), r = d.sahne.querySelector(".kb-kagit").getBoundingClientRect(), m = d.k * 0.45;
+      return r.left - m < s.left || r.right + m > s.right || d.sahne.scrollHeight > d.sahne.clientHeight + 1 || d.sahne.scrollWidth > d.sahne.clientWidth + 1;
+    };
+    for (let t = 0; t < 40 && d.k > 30 && sigmiyor(); t++) { d.k -= 2; d.sahne.style.setProperty("--k", d.k + "px"); zeminCiz(); }
     kapKoy(...(d.yer || b.bas), "u", false);
   }
   function kapKoy(y, x, yon, anim = true) {

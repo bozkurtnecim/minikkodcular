@@ -75,6 +75,8 @@
   .kd-alan .kd-parca { position: absolute; left: calc(var(--c) * var(--gx)); top: calc(var(--c) * var(--gy)); cursor: pointer; }
   .kd-parca.suruk { position: fixed; z-index: 50; cursor: grabbing; filter: drop-shadow(0 10px 8px rgba(0,0,0,.25)); transition: none; }
   .kd-tut { flex: none; }
+  .kd-parca.secili { filter: drop-shadow(0 0 3px #2f86e0) drop-shadow(0 0 3px #2f86e0); transform: translateY(-4px); }
+  .kd-alan > b { cursor: pointer; }
   .kd-parca.salla { animation: kd-salla .45s; }
   @keyframes kd-salla { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
   .kd-parca.don-ipucu::after { content: "↻"; position: absolute; right: -12px; top: -16px; font: 900 20px/1 sans-serif; color: #1d2846; }
@@ -97,18 +99,19 @@
   function yukle(i) {
     const b = BOLUMLER[i];
     d.idx = i; d.uid++; d.mesgul = false;
-    d.durum = b.parcalar.map((p) => ({ hucre: p.hucre, yer: null }));
+    d.durum = b.parcalar.map((p) => ({ hucre: p.hucre, yer: null })); d.secili = null;
     d.ilerleme.son = i; d.api.kayit.yaz(KAYIT, d.ilerleme);
     navCiz();
-    d.sahne.innerHTML = `<div class="kd-tahta"><div class="kd-alan" style="width:calc(var(--c) * ${b.gw});height:calc(var(--c) * ${b.gh})">${b.kalip.map(([x, y]) => `<b style="left:calc(var(--c) * ${x});top:calc(var(--c) * ${y})"></b>`).join("")}</div></div><div class="kd-tepsi"></div>`;
+    d.sahne.innerHTML = `<div class="kd-tahta"><div class="kd-alan" style="width:calc(var(--c) * ${b.gw});height:calc(var(--c) * ${b.gh})">${b.kalip.map(([x, y]) => `<b data-x="${x}" data-y="${y}" style="left:calc(var(--c) * ${x});top:calc(var(--c) * ${y})"></b>`).join("")}</div></div><div class="kd-tepsi"></div>`;
     b.parcalar.forEach((_, j) => parcaCiz(j));
+    d.sahne.querySelectorAll(".kd-alan > b").forEach((el) => (el.onclick = () => kareTik(+el.dataset.x, +el.dataset.y)));
     boyutla();
   }
   function parcaCiz(j) {
     const b = BOLUMLER[d.idx], st = d.durum[j], [w, h] = boyut(st.hucre);
     let el = d.sahne.querySelector(`.kd-parca[data-j="${j}"]`);
     if (!el) { el = document.createElement("div"); el.className = "kd-parca"; el.dataset.j = j; el.onpointerdown = (e) => basla(e, j); }
-    el.className = "kd-parca"; el.removeAttribute("style");
+    el.className = "kd-parca" + (d.secili === j && !st.yer ? " secili" : ""); el.removeAttribute("style");
     el.style.setProperty("--w", w); el.style.setProperty("--h", h);
     el.innerHTML = parcaIc(st.hucre, b.parcalar[j].renk);
     if (st.yer) { el.style.setProperty("--gx", st.yer[0]); el.style.setProperty("--gy", st.yer[1]); d.sahne.querySelector(".kd-alan").appendChild(el); }
@@ -160,7 +163,7 @@
       const cc = c(), alan = d.sahne.querySelector(".kd-alan").getBoundingClientRect();
       const gx = Math.round((parseFloat(el.style.left) - alan.left) / cc), gy = Math.round((parseFloat(el.style.top) - alan.top) / cc);
       if (tut) tut.remove();
-      if (sigar(j, gx, gy)) { st.yer = [gx, gy]; parcaCiz(j); d.api.ses.yerlesti(); kontrol(); }
+      if (sigar(j, gx, gy)) { st.yer = [gx, gy]; if (d.secili === j) d.secili = null; parcaCiz(j); d.api.ses.yerlesti(); kontrol(); }
       else { parcaCiz(j).classList.add("salla"); d.api.ses.hata(); }
     };
     el.addEventListener("pointermove", tasi); el.addEventListener("pointerup", birak); el.addEventListener("pointercancel", birak);
@@ -170,11 +173,23 @@
     d.durum.forEach((s, k) => { if (k !== j && s.yer) s.hucre.forEach(([x, y]) => dolu.add(`${x + s.yer[0]},${y + s.yer[1]}`)); });
     return d.durum[j].hucre.every(([x, y]) => kalip.has(`${x + gx},${y + gy}`) && !dolu.has(`${x + gx},${y + gy}`));
   }
+  // Dokunma: tepsideki parçaya ilk dokunuş seçer, seçili parçaya yeniden dokunuş (dönen bölümlerde) döndürür;
+  // kalıba yerleşmiş parçaya dokunuş onu tepsiye geri alır
   function dokun(j) {
     const b = BOLUMLER[d.idx], st = d.durum[j];
     if (st.yer) { st.yer = null; parcaCiz(j); d.api.ses.tik(); return; }
+    if (d.secili !== j) { const eski = d.secili; d.secili = j; if (eski != null) parcaCiz(eski); parcaCiz(j); d.api.ses.tik(); return; }
     if (!b.don) { parcaCiz(j).classList.add("salla"); return; }
     st.hucre = dondur(st.hucre, 1); parcaCiz(j); d.api.ses.tik();
+  }
+  // Seçili parça varken kalıpta bir kareye dokunma: parça o kareyi kaplayacak şekilde (sığan ilk konumda) yerleşir
+  function kareTik(x, y) {
+    if (d.mesgul || d.secili == null) return;
+    const j = d.secili, st = d.durum[j];
+    for (const [hx, hy] of st.hucre) {
+      if (sigar(j, x - hx, y - hy)) { st.yer = [x - hx, y - hy]; d.secili = null; parcaCiz(j); d.api.ses.yerlesti(); kontrol(); return; }
+    }
+    parcaCiz(j).classList.add("salla"); d.api.ses.hata();
   }
   async function kontrol() {
     const b = BOLUMLER[d.idx], benim = d.uid;

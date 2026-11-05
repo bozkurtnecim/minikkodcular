@@ -111,7 +111,7 @@
     } else {
       d.sahne.innerHTML = `<div class="tz-teraziler"><div class="tz-terazi tz-denge"></div></div>
         <div class="tz-alt">${b.tepsi.map((w) => `<button class="tz-ekle" type="button" data-w="${w}" aria-label="${w === 2 ? "Büyük küp" : "Küp"} ekle"><svg viewBox="-30 -36 60 44">${kupSvg(w, 0, 4, 26)}</svg></button>`).join("")}</div>`;
-      d.sahne.querySelectorAll(".tz-ekle").forEach((el) => (el.onclick = () => ekle(+el.dataset.w)));
+      d.sahne.querySelectorAll(".tz-ekle").forEach((el) => { el.onclick = () => ekle(+el.dataset.w); Uygulama.surukleBirak(el, { hedef: ".tz-denge", birak: () => ekle(+el.dataset.w), izin: () => !d.mesgul }); });
       dengeCiz();
     }
     d.sahne.querySelectorAll(".tz-kart").forEach((el) => (el.onclick = () => sec(el)));

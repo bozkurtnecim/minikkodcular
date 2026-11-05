@@ -267,6 +267,8 @@
     d.sahne.style.setProperty("--k", Math.max(34, Math.floor(k)) + "px");
     d.sahne.style.setProperty("--p", Math.floor(p) + "px");
     d.k = Math.max(34, Math.floor(k));
+    // Hâlâ sığmıyorsa (telefonda alttaki düğme kesilmesin) küçült
+    for (let t = 0; t < 40 && d.k > 30 && d.sahne.scrollHeight > d.sahne.clientHeight + 1; t++) { d.k -= 2; d.sahne.style.setProperty("--k", d.k + "px"); }
     treniKoy(d.tr.r, d.tr.c, d.tr.yon, false);
   }
 

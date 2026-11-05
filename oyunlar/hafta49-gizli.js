@@ -38,7 +38,12 @@
       const kalan = turler.filter((x) => !secenek.includes(x));
       while (resimde.length < n) resimde.push(kalan.length ? kalan[Math.floor(r() * kalan.length)] : cevap);
       if (resimde.length < n) continue;
-      const parcalar = resimde.map((s, j) => ({ s, x: 22 + r() * 56, y: 22 + r() * 56, boy: (n >= 7 ? 0.36 : 0.42) + r() * (n >= 7 ? 0.24 : 0.3), aci: don && s !== "daire" ? Math.round((r() - 0.5) * 70) : 0, cevap: j === 0 }));
+      // Şekil, boyu (ve dönmesi) hesaba katılarak kartın içinde kalır; rastgele sayılar eskisiyle aynı sırada çekilir
+      const parcalar = resimde.map((s, j) => {
+        const rx = r(), ry = r(), boy = (n >= 7 ? 0.36 : 0.42) + r() * (n >= 7 ? 0.24 : 0.3), aci = don && s !== "daire" ? Math.round((r() - 0.5) * 70) : 0;
+        const h = Math.min(46, boy * 50 * (aci ? 1.25 : 1.02));
+        return { s, x: h + rx * (100 - 2 * h), y: h + ry * (100 - 2 * h), boy, aci, cevap: j === 0 };
+      });
       return { parcalar: parcalar.map((x) => [r(), x]).sort((a, b) => a[0] - b[0]).map((x) => x[1]), secenek: secenek.map((x) => [r(), x]).sort((a, b) => a[0] - b[0]).map((x) => x[1]), cevap, renk: RENK[Math.floor(r() * RENK.length)], grup: Uygulama.seviye(i) };
     }
   });

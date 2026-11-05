@@ -74,7 +74,11 @@
     d.sahne.innerHTML = `<div class="bk-ornek">${ornekHtml(b)}</div>
       <div class="bk-sag"><div class="bk-direkler buyuk">${b.hedef.map((_, s) => `<button class="bk-sutun" type="button" data-s="${s}" style="--h:${b.h}" aria-label="Direk ${s + 1}"></button>`).join("")}</div>
       <div class="bk-renkler">${b.renkler.map((c) => `<button class="bk-renk" type="button" data-r="${c}" aria-label="Renk">${blok(c)}</button>`).join("")}</div></div>`;
-    d.sahne.querySelectorAll(".bk-renk").forEach((el) => (el.onclick = () => { d.renk = +el.dataset.r; d.api.ses.tik(); renkCiz(); }));
+    d.sahne.querySelectorAll(".bk-renk").forEach((el) => {
+      el.onclick = () => { d.renk = +el.dataset.r; d.api.ses.tik(); renkCiz(); };
+      // Renk bloğu direğe sürüklenebilir de
+      Uygulama.surukleBirak(el, { hedef: ".bk-direkler.buyuk .bk-sutun", birak: (s) => { d.renk = +el.dataset.r; renkCiz(); birak(+s.dataset.s, s); }, izin: () => !d.mesgul });
+    });
     d.sahne.querySelectorAll(".bk-direkler.buyuk .bk-sutun").forEach((el) => (el.onclick = () => birak(+el.dataset.s, el)));
     renkCiz(); boyutla();
   }

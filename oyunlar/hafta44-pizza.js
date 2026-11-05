@@ -121,7 +121,7 @@
       <div class="pz-secenekler">${b.secenek.map((s, j) => `<button class="pz-parca" type="button" data-j="${j}" aria-label="Parça">${parca(b, s, j)}</button>`).join("")}</div>`;
     d.butun = d.sahne.querySelector(".pz-butun");
     d.butun.innerHTML = butun(b, d.dolu);
-    d.sahne.querySelectorAll(".pz-parca").forEach((el) => (el.onclick = () => sec(el)));
+    d.sahne.querySelectorAll(".pz-parca").forEach((el) => { el.onclick = () => sec(el); Uygulama.surukleBirak(el, { hedef: ".pz-butun", birak: () => sec(el), izin: () => !d.mesgul }); });
     boyutla();
   }
   function boyutla() {

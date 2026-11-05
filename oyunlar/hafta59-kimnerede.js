@@ -105,7 +105,11 @@
   function ciz() {
     const b = BOLUMLER[d.idx];
     d.sahne.querySelector(".kn-tepsi").innerHTML = b.hayvanlar.map((id, a) => (d.yer[a] < 0 ? `<button class="kn-hayvan${d.secili === a ? " secili" : ""}" type="button" data-h="${a}" aria-label="${NESNELER[id] ? NESNELER[id].ad : id}">${img(id)}</button>` : "")).join("");
-    d.sahne.querySelectorAll(".kn-tepsi .kn-hayvan").forEach((el) => (el.onclick = () => { if (d.mesgul) return; d.secili = +el.dataset.h; d.api.ses.tik(); ciz(); }));
+    d.sahne.querySelectorAll(".kn-tepsi .kn-hayvan").forEach((el) => {
+      el.onclick = () => { if (d.mesgul) return; d.secili = +el.dataset.h; d.api.ses.tik(); ciz(); };
+      // Hayvan eve sürüklenebilir de
+      Uygulama.surukleBirak(el, { hedef: ".kn-ev", birak: (e) => { d.secili = +el.dataset.h; evTik(+e.dataset.e); }, izin: () => !d.mesgul });
+    });
     d.sahne.querySelectorAll(".kn-ev").forEach((el) => {
       const h = +el.dataset.e, a = d.yer.indexOf(h), yer = el.querySelector(".kn-yer");
       yer.innerHTML = a >= 0 ? img(b.hayvanlar[a]) : ""; yer.classList.toggle("dolu", a >= 0);

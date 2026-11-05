@@ -123,6 +123,7 @@
   .dk-zil svg { width: 100%; height: 100%; display: block; }
   .dk-zil.calar { opacity: 1; animation: dk-s .25s 2; }
   .dk-program { display: grid; gap: 8px; padding: 12px; border-radius: 22px; background: var(--kagit); box-shadow: 0 6px 0 rgba(29,40,70,.1); }
+  .dk-program.iki { grid-template-columns: 1fr 1fr; }
   .dk-satir { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 16px; border: 3px solid transparent; cursor: pointer; }
   .dk-satir.secili { border-color: var(--mavi); background: #e6f1ff; }
   .dk-satir.hedefte { border-color: var(--mavi); background: #d4e8ff; }
@@ -130,7 +131,7 @@
   .dk-olay > svg { width: 100%; height: 100%; display: block; }
   .dk-olay .rozet { position: absolute; right: -8px; bottom: -6px; width: 56%; height: 56%; border-radius: 50%; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,.2); }
   .dk-olay .rozet svg { width: 100%; height: 100%; display: block; }
-  .dk-ok { font: 900 1.6rem var(--f-baslik); color: #9aa7b8; }
+  .dk-ok { font: 900 calc(var(--p) * .5) var(--f-baslik); color: #9aa7b8; }
   .dk-yer { width: var(--p); height: var(--p); border-radius: 14px; border: 3px dashed var(--cizgi); box-sizing: border-box; background: var(--zemin); }
   .dk-yer.dolu { border: 0; background: none; cursor: pointer; }
   .dk-yer svg { width: 100%; height: 100%; display: block; }
@@ -217,7 +218,17 @@
     let p = dikey ? Math.min(60, (W - 60) / (b.L + 2.2)) : Math.min(68, (H - 130) / (satirSay * 1 + kutuSatir) - 18, (W * 0.48 - 60) / (b.L + 2.2));
     p = Math.max(44, Math.floor(p));
     const h = dikey ? Math.min(110, (W - 60) / b.hay.length - 18) : Math.min(140, (W * 0.48 - 60) / b.hay.length - 18, H * 0.32);
-    d.sahne.style.setProperty("--p", p + "px"); d.sahne.style.setProperty("--h", Math.max(64, Math.floor(h)) + "px");
+    // Telefonda çok satır varsa satırlar iki sütuna dizilir (alttaki kart tepsisi ekranda kalsın)
+    // satır: olay simgesi + ok + L kutu + kenar boşlukları
+    const satirGen = (q) => q * 0.9 + q * 0.6 + b.L * q + (b.L + 1) * 8 + 24;
+    let pIki = Math.min(p, 44), iki = false;
+    if (dikey && satirSay > 3) for (; pIki >= 32; pIki -= 2) if (2 * satirGen(pIki) + 40 <= W) { iki = true; break; }
+    d.sahne.querySelector(".dk-program").classList.toggle("iki", iki);
+    if (iki) p = pIki;
+    let hh = Math.max(64, Math.floor(h));
+    d.sahne.style.setProperty("--p", p + "px"); d.sahne.style.setProperty("--h", hh + "px");
+    // Hâlâ sığmıyorsa (telefonda alttaki düğme kesilmesin) küçült
+    for (let t = 0; t < 40 && p > 30 && d.sahne.scrollHeight > d.sahne.clientHeight + 1; t++) { if (hh > 56) hh -= 3; if (p > 34) p -= 1; d.sahne.style.setProperty("--p", p + "px"); d.sahne.style.setProperty("--h", hh + "px"); }
   }
   function kartKoy(k, s) {
     if (d.calisiyor) return;

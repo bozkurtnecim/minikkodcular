@@ -26,6 +26,9 @@
   .yb-parca .kenar { pointer-events: all; cursor: grab; }
   .yb-parca.tutulan { filter: drop-shadow(0 12px 8px rgba(29,40,70,.35)); transform: scale(1.06); }
   .yb-parca.tutulan .kenar { cursor: grabbing; }
+  .yb-parca.secili { filter: drop-shadow(0 0 3px #2f86e0) drop-shadow(0 0 3px #2f86e0) drop-shadow(0 6px 4px rgba(29,40,70,.3)); transform: translateY(-4px) scale(1.04); }
+  .yb-parca.salla { animation: yb-salla .45s; }
+  @keyframes yb-salla { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
   .yb-parca.donuyor { transition: left .35s cubic-bezier(.3,1.4,.5,1), top .35s cubic-bezier(.3,1.4,.5,1); }
   .yb-parca.yerinde { filter: none; }
   .yb-parca.yerinde .kenar { pointer-events: none; }
@@ -139,6 +142,8 @@
     }
     d.sahne.classList.remove("tamam", "ipucu");
     d.sahne.innerHTML = `<div class="yb-kutu"></div><div class="yb-tahta"><div class="yb-hayalet"></div><svg class="yb-cizgiler"></svg><div class="yb-tam"></div></div>`;
+    d.secili = null;
+    d.sahne.querySelector(".yb-tahta").addEventListener("click", tahtaTik);
     d.sahne.querySelector(".yb-hayalet").style.backgroundImage = `url("${resim}")`;
     d.sahne.querySelector(".yb-tam").style.backgroundImage = `url("${resim}")`;
     d.parcalar.forEach((p) => {
@@ -157,18 +162,35 @@
     if (!d || !d.parcalar.length) return;
     const W = d.sahne.clientWidth, H = d.sahne.clientHeight;
     if (W < 50 || H < 50) return;
-    const g = 16, n = d.n;
+    const g = 16, n = d.n, k = n * n, yan = W >= H * 1.05;
     let S, bx, by, kutu;
-    if (W >= H * 1.05) {
-      S = Math.min(H - 2 * g - 14, (W - 3 * g) * 0.55);
-      bx = g + 8; by = (H - S) / 2 - 4;
-      kutu = { x: bx + S + g + 8, y: g, w: W - (bx + S + g + 8) - g, h: H - 2 * g };
-    } else {
-      S = Math.min(W - 2 * g - 16, (H - 3 * g) * 0.56);
-      bx = (W - S) / 2; by = g + 8;
-      kutu = { x: g, y: by + S + g + 14, w: W - 2 * g, h: H - (by + S + g + 14) - g };
+    const yerlesim = (S) => {
+      if (yan) { const bx = g + 8, kutu = { x: bx + S + g + 8, y: g, w: W - (bx + S + g + 8) - g, h: H - 2 * g }; return { bx, by: (H - S) / 2, kutu }; }
+      const by = g + 8; return { bx: (W - S) / 2, by, kutu: { x: g, y: by + S + g + 14, w: W - 2 * g, h: H - (by + S + g + 14) - g } };
+    };
+    // Tahta, parça kutusu bütün parçaları (biraz üst üste binerek) alabilecek kadar küçülür
+    S = yan ? Math.min(H - 2 * g - 14, (W - 3 * g) * 0.55) : Math.min(W - 2 * g - 16, (H - 3 * g) * 0.56);
+    for (let deneme = 0; deneme < 40; deneme++) {
+      const y = yerlesim(S), P = S / n, hucre = P * (1 + 2 * TAB) * 0.82;
+      const sut = Math.max(1, Math.floor(y.kutu.w / hucre)), sat = Math.ceil(k / sut);
+      if (sat * hucre <= y.kutu.h && P * (1 + 2 * TAB) <= Math.min(y.kutu.w, y.kutu.h)) break;
+      S *= 0.95;
     }
+    ({ bx, by, kutu } = yerlesim(S));
     const P = S / n;
+    // Ekran boyutu değişince (tam ekran, döndürme) dağınık parçalar yeni kutuda aynı göreli yere taşınır
+    const eski = d.duzen;
+    // Büyük değişimde (tam ekran, döndürme) dağınık parçalar kutuya yeniden düzgünce dağıtılır; küçük değişimde göreli yer korunur
+    if (eski && !dagit && (Math.abs(eski.W - W) > eski.W * 0.12 || Math.abs(eski.H - H) > eski.H * 0.12)) dagit = true;
+    if (eski && !dagit) d.parcalar.forEach((p) => {
+      if (p.yerinde || p.fx == null) return;
+      const em = TAB * eski.P, ox = p.fx * eski.W, oy = p.fy * eski.H;
+      const ux = Math.max(0, Math.min(1, (ox - eski.kutu.x - em) / Math.max(1, eski.kutu.w - eski.P - 2 * em)));
+      const uy = Math.max(0, Math.min(1, (oy - eski.kutu.y - em) / Math.max(1, eski.kutu.h - eski.P - 2 * em)));
+      const m = TAB * P;
+      p.fx = (kutu.x + m + ux * Math.max(0, kutu.w - P - 2 * m)) / W;
+      p.fy = (kutu.y + m + uy * Math.max(0, kutu.h - P - 2 * m)) / H;
+    });
     d.duzen = { W, H, S, bx, by, P, kutu };
 
     const tahta = d.sahne.querySelector(".yb-tahta");
@@ -193,17 +215,18 @@
 
   function dagitParcalar() {
     const d = durum, { kutu, P, W, H } = d.duzen;
-    const k = d.parcalar.length;
+    const daginik = d.parcalar.filter((p) => !p.yerinde), k = daginik.length;
     const sutun = Math.max(1, Math.round(Math.sqrt((k * kutu.w) / Math.max(1, kutu.h))));
     const satir = Math.ceil(k / sutun);
     const sw = kutu.w / sutun, sh = kutu.h / satir;
-    const sira = d.parcalar.map((_, i) => i).sort(() => Math.random() - 0.5);
-    d.parcalar.forEach((p, i) => {
+    const sira = daginik.map((_, i) => i).sort(() => Math.random() - 0.5);
+    daginik.forEach((p, i) => {
       const s = sira[i];
       let x = kutu.x + ((s % sutun) + 0.5) * sw - P / 2 + (Math.random() - 0.5) * sw * 0.3;
       let y = kutu.y + (Math.floor(s / sutun) + 0.5) * sh - P / 2 + (Math.random() - 0.5) * sh * 0.3;
-      x = Math.max(kutu.x + 6, Math.min(x, kutu.x + kutu.w - P - 6));
-      y = Math.max(kutu.y + 6, Math.min(y, kutu.y + kutu.h - P - 6));
+      const m = TAB * P;
+      x = Math.max(kutu.x + m, Math.min(x, kutu.x + kutu.w - P - m));
+      y = Math.max(kutu.y + m, Math.min(y, kutu.y + kutu.h - P - m));
       p.fx = x / W; p.fy = y / H;
       p.el.style.zIndex = 1 + i;
     });
@@ -214,16 +237,41 @@
     let x, y;
     if (p.yerinde) { x = bx + p.c * P; y = by + p.r * P; }
     else {
-      x = Math.max(-m, Math.min(p.fx * W, W - P - m));
-      y = Math.max(-m, Math.min(p.fy * H, H - P - m));
+      // Parça (çıkıntılarıyla birlikte) her zaman ekranın içinde kalır
+      x = Math.max(m, Math.min(p.fx * W, W - P - m));
+      y = Math.max(m, Math.min(p.fy * H, H - P - m));
     }
     p.el.style.left = x - m + "px";
     p.el.style.top = y - m + "px";
   }
 
   let enUst = 1000;
+  function sec(p) {
+    const d = durum; d.secili = p;
+    d.parcalar.forEach((q) => q.el.classList.toggle("secili", q === p));
+  }
+  function yerlestir(p) {
+    const d = durum;
+    if (d.secili === p) sec(null);
+    p.yerinde = true;
+    p.el.classList.remove("secili");
+    p.el.classList.add("yerinde", "pir");
+    p.el.style.zIndex = 1;
+    konumla(p);
+    d.api.ses.yerlesti();
+    if (d.parcalar.every((q) => q.yerinde)) bitir();
+  }
+  // Seçili parça varken tahtaya dokunma: doğru kareyse parça yerine oturur, değilse sallanır
+  function tahtaTik(e) {
+    const d = durum, p = d && d.secili;
+    if (!p || d.bitti || !d.duzen) return;
+    const { bx, by, P } = d.duzen, sr = d.sahne.getBoundingClientRect();
+    const c = Math.floor((e.clientX - sr.left - bx) / P), r = Math.floor((e.clientY - sr.top - by) / P);
+    if (r === p.r && c === p.c) return yerlestir(p);
+    d.api.ses.hata(); p.el.classList.remove("salla"); void p.el.offsetWidth; p.el.classList.add("salla");
+  }
   function surukle(p) {
-    let basX, basY, ilkFx, ilkFy, tutuyor = false;
+    let basX, basY, ilkFx, ilkFy, ilkX, ilkY, tutuyor = false;
     p.el.addEventListener("pointerdown", (e) => {
       const d = durum;
       if (p.yerinde || d.bitti || !d.duzen) return;
@@ -235,7 +283,7 @@
       p.el.style.zIndex = ++enUst;
       const { W, H } = d.duzen;
       basX = e.clientX - p.fx * W; basY = e.clientY - p.fy * H;
-      ilkFx = p.fx; ilkFy = p.fy;
+      ilkFx = p.fx; ilkFy = p.fy; ilkX = e.clientX; ilkY = e.clientY;
       d.api.ses.tik();
     });
     p.el.addEventListener("pointermove", (e) => {
@@ -244,20 +292,17 @@
       p.fx = (e.clientX - basX) / W; p.fy = (e.clientY - basY) / H;
       konumla(p);
     });
-    const birak = () => {
+    const birak = (e) => {
       if (!tutuyor) return;
       tutuyor = false;
       const d = durum, { W, H, bx, by, P, S } = d.duzen;
       p.el.classList.remove("tutulan");
+      // Parmak kaymadıysa dokunmadır: parça seçilir, sonra tahtada doğru yerine dokunulur
+      if (e && Math.hypot(e.clientX - ilkX, e.clientY - ilkY) < 6) { p.fx = ilkFx; p.fy = ilkFy; konumla(p); sec(d.secili === p ? null : p); return; }
       const x = p.fx * W, y = p.fy * H;
       const hx = bx + p.c * P, hy = by + p.r * P;
       if (Math.hypot(x - hx, y - hy) < P * 0.36) {
-        p.yerinde = true;
-        p.el.classList.add("yerinde", "pir");
-        p.el.style.zIndex = 1;
-        konumla(p);
-        d.api.ses.yerlesti();
-        if (d.parcalar.every((q) => q.yerinde)) bitir();
+        yerlestir(p);
       } else {
         const ox = x + P / 2, oy = y + P / 2;
         if (ox > bx && ox < bx + S && oy > by && oy < by + S) {

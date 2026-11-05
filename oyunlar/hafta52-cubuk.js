@@ -114,7 +114,13 @@
     let o, t;
     if (W > H * 1.15) { o = Math.min((H - 10) / oran, (W - 26) * 0.64, 600); t = Math.min(o * 0.5, W - o - 46, 240, H - 80); }
     else { o = Math.min(W - 10, ((H - 30) * 0.6) / oran, 600); t = Math.min(o * 0.45, H - o * oran - 100, 220); }
-    d.sahne.style.setProperty("--o", Math.floor(Math.max(180, o)) + "px"); d.sahne.style.setProperty("--t", Math.floor(Math.max(100, t)) + "px");
+    o = Math.floor(Math.max(180, o)); t = Math.floor(Math.max(100, t));
+    d.sahne.style.setProperty("--o", o + "px"); d.sahne.style.setProperty("--t", t + "px");
+    // Hâlâ sığmıyorsa (telefonda tahtanın altı kesilmesin) önce örnek kartı, sonra tahtayı küçült
+    for (let n = 0; n < 60 && d.sahne.scrollHeight > d.sahne.clientHeight + 1; n++) {
+      if (t > 80) t -= 4; else if (o > 140) o -= 6; else break;
+      d.sahne.style.setProperty("--o", o + "px"); d.sahne.style.setProperty("--t", t + "px");
+    }
   }
   // Örnekle en çok örtüşen yerleşime göre yanlış çubukları bul
   function yanlislar() {

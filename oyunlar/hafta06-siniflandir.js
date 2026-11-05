@@ -56,6 +56,8 @@
   .sn-sepet { --c: #c4935f; position: relative; flex: 1 1 0; max-width: 300px; min-width: 0; display: grid; grid-template-rows: auto 1fr; border: 0; padding: 0; background: none; cursor: pointer; font: inherit; color: inherit; transition: transform .15s; }
   .sn-etiket { justify-self: center; display: flex; align-items: center; gap: 8px; padding: 6px 14px 6px 6px; margin-bottom: -14px; z-index: 2; border-radius: 999px; background: var(--kagit); box-shadow: 0 4px 0 rgba(29,40,70,.12); font-family: var(--f-baslik); font-weight: 800; font-size: 1.05rem; white-space: nowrap; }
   .sn-etiket img, .sn-etiket i { width: calc(var(--k) * .5); height: calc(var(--k) * .5); min-width: 34px; min-height: 34px; display: block; }
+  .sn-sepetler.dar .sn-etiket { padding: 6px; gap: 0; }
+  .sn-sepetler.dar .sn-etiket > span { display: none; }
   .sn-etiket i { border-radius: 50%; background: var(--c); box-shadow: inset 0 -4px 0 rgba(0,0,0,.15); }
   .sn-govde { min-height: calc(var(--k) * 1.15); padding: 22px 10px 12px; border-radius: 14px 14px 30px 30px; background: repeating-linear-gradient(90deg, rgba(0,0,0,.08) 0 6px, transparent 6px 14px), repeating-linear-gradient(0deg, rgba(255,255,255,.12) 0 6px, transparent 6px 14px), var(--c); box-shadow: inset 0 8px 0 rgba(0,0,0,.12), 0 7px 0 rgba(29,40,70,.14); display: flex; flex-wrap: wrap; align-content: flex-start; justify-content: center; gap: 4px; }
   .sn-govde img { width: calc(var(--k) * .48); height: calc(var(--k) * .48); filter: drop-shadow(0 2px 0 rgba(0,0,0,.2)); animation: sn-dus .35s cubic-bezier(.3,1.6,.5,1); }
@@ -129,6 +131,9 @@
       en = Math.max(en, Math.min(kG, kH, 130));
     }
     d.sahne.style.setProperty("--k", Math.max(46, Math.floor(en)) + "px");
+    // Dar ekranda sepet etiketinde yalnız resim kalır (yazı sığmaz; oyun okuma gerektirmez)
+    const sepetler = d.sahne.querySelector(".sn-sepetler");
+    if (sepetler) sepetler.classList.toggle("dar", (W - (b.sepetler.length - 1) * ara * 1.6) / b.sepetler.length < 170);
     d.sahne.style.setProperty("--ara", ara + "px");
   }
 
