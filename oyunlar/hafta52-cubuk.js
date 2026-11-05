@@ -138,8 +138,12 @@
     d.konan.add(k); g.insertAdjacentHTML("beforeend", cubuk(k, "cb-yerli", b.renk)); d.api.ses.yerlesti(); kutuCiz();
     if (d.konan.size < b.kenarlar.length) return;
     if (normal(d.konan) !== b.norm) {
-      d.api.ses.hata();
+      // Yanlış çubuklar yanıp söner, sonra bütün çubuklar kutuya döner; çocuk baştan kurar
+      d.api.ses.hata(); d.mesgul = true;
       yanlislar().forEach((y) => g.querySelector(`[data-k="${y}"]`).classList.add("kirmizi"));
+      await bekle(1500);
+      if (!d || benim !== d.uid) return;
+      d.konan = new Set(); g.innerHTML = ""; kutuCiz(); d.mesgul = false;
       return;
     }
     d.mesgul = true; await bekle(650); if (!d || benim !== d.uid) return;

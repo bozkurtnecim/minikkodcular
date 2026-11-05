@@ -288,6 +288,8 @@
       await bekle(1600);
       if (!d || benim !== d.uid) return;
       hc.forEach((h) => { h.classList.remove("dogru", "yanlis"); const k = h.querySelector(".koy"); if (k) k.remove(); });
+      // Yanlışta program baştaki hâline döner (bozuk programlı bölümlerde bozuk hâline), çocuk baştan dener
+      d.program = programKur(b.yapi, b.hazir);
       d.calisiyor = false; programCiz();
     }
 

@@ -242,9 +242,13 @@
     // Yanlış öğretilen örnekler yanıp söner; çocuk düzeltir
     await bekle(400);
     d.sahne.querySelectorAll(".yz-adim span").forEach((s) => s.classList.toggle("aktif", s.dataset.a === "1"));
-    d.calisiyor = false; ciz();
-    robotEl.innerHTML = robot("uzgun");
+    // Yanlış öğretilen örnekler yanıp söner, sonra bütün örnekler sepetlerden çıkar; çocuk baştan öğretir
     b.ogret.forEach((_, q) => { if (d.yer[q] !== b.dogru[q]) { const k = d.sahne.querySelector(`.yz-sepet .k[data-q="${q}"]`); if (k) k.classList.add("yanlis"); } });
+    robotEl.innerHTML = robot("uzgun");
+    await bekle(1400);
+    if (!d || benim !== d.uid) return;
+    d.yer = b.ogret.map(() => -1);
+    d.calisiyor = false; ciz();
   }
   function bitir() {
     d.calisiyor = false;
